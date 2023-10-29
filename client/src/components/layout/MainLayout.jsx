@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import userApi from "../../api/modules/user.api";
 import favoriteApi from "../../api/modules/favorite.api";
 import { setListFavorites, setUser } from "../../redux/features/userSlice";
+import CustomScrollbar from "../CustomScrollbar";
 
 const MainLayout = () => {
   const dispatch = useDispatch();
@@ -61,7 +62,9 @@ const MainLayout = () => {
           overflow="hidden"
           minHeight="100vh"
         >
+         <CustomScrollbar>
           <Outlet />
+        </CustomScrollbar>
         </Box>
         {/* main */}
       </Box>

@@ -8,30 +8,33 @@ export const themeModes = {
 
 const themeConfigs = {
   custom: ({ mode }) => {
-    const customPalette = mode === themeModes.dark ? {
-      primary: {
-        main: "#ff0000",
-        contrastText: "#ffffff"
-      },
-      secondary: {
-        main: "#f44336",
-        contrastText: "#ffffff"
-      },
-      background: {
-        default: "#000000",
-        paper: "#131313"
+    const customPalette = mode === themeModes.dark
+      ? {
+        primary: {
+          main: "#864d25", // Solid gold color for both dark and light modes
+          contrastText: "#ffffff"
+        },
+        secondary: {
+          main: "#f44336",
+          contrastText: "#ffffff"
+        },
+        background: {
+          default: "#000000",
+          paper: "#131313"
+        }
       }
-    } : {
-      primary: {
-        main: "#ff0000"
-      },
-      secondary: {
-        main: "#f44336"
-      },
-      background: {
-        default: colors.grey["100"],
-      }
-    };
+      : {
+        primary: {
+          main: "#864d25", // Solid gold color for both dark and light modes
+          contrastText: "#ffffff"
+        },
+        secondary: {
+          main: "#f44336"
+        },
+        background: {
+          default: colors.grey["100"],
+        }
+      };
 
     return createTheme({
       palette: {

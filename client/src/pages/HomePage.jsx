@@ -10,7 +10,9 @@ const HomePage = () => {
   return (
     <>
       <HeroSlide mediaType={tmdbConfigs.mediaType.movie} mediaCategory={tmdbConfigs.mediaCategory.popular} />
-
+      {/* <Container header="">
+      <HeroSlide mediaType={tmdbConfigs.mediaType.movie} mediaCategory={tmdbConfigs.mediaCategory.popular} />
+        </Container> */}
       <Box marginTop="-4rem" sx={{ ...uiConfigs.style.mainContent }}>
         <Container header="popular movies">
           <MediaSlide mediaType={tmdbConfigs.mediaType.movie} mediaCategory={tmdbConfigs.mediaCategory.popular} />
