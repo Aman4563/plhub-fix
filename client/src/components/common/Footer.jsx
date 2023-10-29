@@ -25,7 +25,7 @@ const Footer = () => {
               <Button
                 key={index}
                 sx={{
-                  color: '#fff', // White text color
+                  // color: '#fff',
                   textTransform: 'capitalize',
                   '&:hover': {
                     color: '#fca311', // Highlight on hover

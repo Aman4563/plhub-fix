@@ -3,9 +3,10 @@
   "name": "PLHUB",
   "icons": [
     {
-      "src": "plhub-favicon-gold.png",
-      "sizes": "64x64 32x32 24x24 16x16",
+      "src": "/plhub-favicon-gold.png",
+      "sizes": "192x192",
       "type": "image/png"
+  
     },
     {
       "src": "plhub-favicon-gold.png",
