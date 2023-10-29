@@ -1,6 +1,6 @@
 {
   "name": "plhub",
-  "type": "commonjs",
+  "type": "module",
   "version": "0.0.1",
   "author": "Aman",
   "main": "index.js",
