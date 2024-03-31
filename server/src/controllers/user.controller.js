@@ -1,7 +1,8 @@
 import userModel from "../models/user.model.js";
 import jsonwebtoken from "jsonwebtoken";
 import responseHandler from "../handlers/response.handler.js";
-
+import dotenv from "dotenv"
+dotenv.config()
 const signup = async (req, res) => {
   try {
     const { username, password, displayName } = req.body;
