@@ -11,11 +11,11 @@ const themeConfigs = {
     const customPalette = mode === themeModes.dark
       ? {
         primary: {
-          main: "#864d25", // Solid gold color for both dark and light modes
+          main: "#ff4136", // Solid gold color for both dark and light modes
           contrastText: "#ffffff"
         },
         secondary: {
-          main: "#f44336",
+          main: "#ff851b",
           contrastText: "#ffffff"
         },
         background: {
@@ -25,11 +25,11 @@ const themeConfigs = {
       }
       : {
         primary: {
-          main: "#864d25", // Solid gold color for both dark and light modes
+          main: "#ff4136", // Solid gold color for both dark and light modes
           contrastText: "#ffffff"
         },
         secondary: {
-          main: "#f44336"
+          main: "#ff851b"
         },
         background: {
           default: colors.grey["100"],
