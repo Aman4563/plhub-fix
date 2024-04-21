@@ -1,7 +1,8 @@
 import userModel from "../models/user.model.js";
 import jsonwebtoken from "jsonwebtoken";
 import responseHandler from "../handlers/response.handler.js";
-
+import dotenv from "dotenv"
+dotenv.config()
 const signup = async (req, res) => {
   try {
     const { username, password, displayName } = req.body;
@@ -37,19 +38,21 @@ const signup = async (req, res) => {
 const signin = async (req, res) => {
   try {
     const { username, password } = req.body;
-
+    // console.log(username,password)
     const user = await userModel.findOne({ username }).select("username password salt id displayName");
-
+    // console.log(user)
     if (!user) return responseHandler.badrequest(res, "User not exist");
 
     if (!user.validPassword(password)) return responseHandler.badrequest(res, "Wrong password");
-
+    
+    console.log(process.env.TOKEN_SECRET)
     const token = jsonwebtoken.sign(
       { data: user.id },
       process.env.TOKEN_SECRET,
       { expiresIn: "24h" }
     );
 
+    
     user.password = undefined;
     user.salt = undefined;
 

@@ -30,6 +30,12 @@ const main = [
     path: "/search",
     icon: <SearchOutlinedIcon />,
     state: "search"
+  },
+  {
+    display: "Demand",
+    path: "/feedback",
+    icon: <SearchOutlinedIcon />,
+    state: "feedback"
   }
 ];
 

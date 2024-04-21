@@ -7,6 +7,7 @@ import MediaSearch from "../pages/MediaSearch";
 import PasswordUpdate from "../pages/PasswordUpdate";
 import ReviewList from "../pages/ReviewList";
 import ProtectedPage from "../components/common/ProtectedPage";
+import FeedbackSpreadsheet from "../pages/FeedbackSpreadsheet";
 
 export const routesGen = {
   home: "/",
@@ -16,6 +17,7 @@ export const routesGen = {
   person: (id) => `/person/${id}`,
   favoriteList: "/favorites",
   reviewList: "/reviews",
+  feedback: "/feedback",
   passwordUpdate: "password-update"
 };
 
@@ -69,6 +71,10 @@ const routes = [
   {
     path: "/:mediaType/:mediaId",
     element: <MediaDetail />
+  },
+  {
+    path: "/feedback",
+    element: <FeedbackSpreadsheet />
   }
 ];
 
