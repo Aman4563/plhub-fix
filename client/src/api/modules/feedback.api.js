@@ -18,7 +18,7 @@ const feedbackApi = {
   },
   fetchFeedback: async () => {
     try {
-      const response = await privateClient.get(feedbackEndpoints.fetch,{});
+      const response = await privateClient.get(feedbackEndpoints.fetch);
       return { response };
     } catch (err) {
       return { err };

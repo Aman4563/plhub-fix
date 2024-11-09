@@ -1,7 +1,8 @@
-import mongoose from 'mongoose';
-import modelOptions from './model.options.js';
+import mongoose, { Schema } from "mongoose";
+import modelOptions from "./model.options.js";
 
-const feedbackSchema = new mongoose.Schema(
+export default mongoose.model(
+  "Feedback", mongoose.Schema(
   {
     user: {
       type: String, // Change type to String to accept username
@@ -16,9 +17,5 @@ const feedbackSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  modelOptions
+  modelOptions)
 );
-
-const Feedback = mongoose.model('Feedback', feedbackSchema);
-
-export default Feedback;

@@ -1,7 +1,6 @@
 import axios from "axios";
 import queryString from "query-string";
 
-// const baseURL = "https://moonflix-api.vercel.app/api/v1/";
 const baseURL = "https://plhub-fix-api.vercel.app/api/v1/";
 // const baseURL = "http://localhost:8000/api/v1/";
 
