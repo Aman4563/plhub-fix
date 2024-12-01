@@ -5,8 +5,8 @@ import queryString from "query-string";
  * Base URL for the API requests
  * Update this value depending on the environment (e.g., production or development).
  */
-// const baseURL = "https://plhub-fix-api.vercel.app/api/v1/";
-const baseURL = "http://localhost:8000/api/v1/";
+const baseURL = "https://plhub-fix-api-git-advancefeature-9703ab-amans-projects-62ecaac6.vercel.app/api/v1/";
+// const baseURL = "http://localhost:8000/api/v1/";
 
 /**
  * Create an Axios instance with default configurations.
