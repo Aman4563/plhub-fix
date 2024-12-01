@@ -10,9 +10,17 @@ import Container from "./Container";
 import reviewApi from "../../api/modules/review.api";
 import TextAvatar from "./TextAvatar";
 
+/**
+ * ReviewItem Component
+ * - Displays a single review with the user's name, avatar, content, and timestamp.
+ * - Allows the logged-in user to remove their own reviews.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.review - Review object containing review details.
+ * @param {Function} props.onRemoved - Callback function to handle review removal.
+ */
 const ReviewItem = ({ review, onRemoved }) => {
   const { user } = useSelector((state) => state.user);
-
   const [onRequest, setOnRequest] = useState(false);
 
   const onRemove = async () => {
@@ -21,22 +29,27 @@ const ReviewItem = ({ review, onRemoved }) => {
 
     const { response, err } = await reviewApi.remove({ reviewId: review.id });
 
-    if (err) toast.error(err.message);
-    if (response) onRemoved(review.id);
+    setOnRequest(false);
+
+    if (err) {
+      toast.error(err.message);
+    } else if (response) {
+      onRemoved(review.id);
+    }
   };
 
   return (
-    <Box sx={{
-      padding: 2,
-      borderRadius: "5px",
-      position: "relative",
-      opacity: onRequest ? 0.6 : 1,
-      "&:hover": { backgroundColor: "background.paper" }
-    }}>
+    <Box
+      sx={{
+        padding: 2,
+        borderRadius: "5px",
+        position: "relative",
+        opacity: onRequest ? 0.6 : 1,
+        "&:hover": { backgroundColor: "background.paper" },
+      }}
+    >
       <Stack direction="row" spacing={2}>
-        {/* avatar */}
         <TextAvatar text={review.user?.displayName} />
-        {/* avatar */}
         <Stack spacing={2} flexGrow={1}>
           <Stack spacing={1}>
             <Typography variant="h6" fontWeight="700">
@@ -49,21 +62,20 @@ const ReviewItem = ({ review, onRemoved }) => {
           <Typography variant="body1" textAlign="justify">
             {review.content}
           </Typography>
-          {user && user.id === review.user.id && (
+          {user?.id === review.user.id && (
             <LoadingButton
               variant="contained"
               startIcon={<DeleteIcon />}
-              loadingPosition="start"
               loading={onRequest}
               onClick={onRemove}
               sx={{
                 position: { xs: "relative", md: "absolute" },
                 right: { xs: 0, md: "10px" },
                 marginTop: { xs: 2, md: 0 },
-                width: "max-content"
+                width: "max-content",
               }}
             >
-              remove
+              Remove
             </LoadingButton>
           )}
         </Stack>
@@ -72,8 +84,19 @@ const ReviewItem = ({ review, onRemoved }) => {
   );
 };
 
+/**
+ * MediaReview Component
+ * - Manages a list of reviews for a specific media.
+ * - Allows authenticated users to post new reviews and remove their own reviews.
+ *
+ * @param {Object} props - Component props.
+ * @param {Array} props.reviews - Initial list of reviews for the media.
+ * @param {Object} props.media - Media object containing media details.
+ * @param {string} props.mediaType - Type of the media (e.g., "movie" or "tv").
+ */
 const MediaReview = ({ reviews, media, mediaType }) => {
   const { user } = useSelector((state) => state.user);
+
   const [listReviews, setListReviews] = useState([]);
   const [filteredReviews, setFilteredReviews] = useState([]);
   const [page, setPage] = useState(1);
@@ -81,16 +104,17 @@ const MediaReview = ({ reviews, media, mediaType }) => {
   const [content, setContent] = useState("");
   const [reviewCount, setReviewCount] = useState(0);
 
-  const skip = 4;
+  const itemsPerPage = 4;
 
   useEffect(() => {
     setListReviews([...reviews]);
-    setFilteredReviews([...reviews].splice(0, skip));
+    setFilteredReviews([...reviews].slice(0, itemsPerPage));
     setReviewCount(reviews.length);
   }, [reviews]);
 
   const onAddReview = async () => {
-    if (onRequest) return;
+    if (onRequest || !content.trim()) return;
+
     setOnRequest(true);
 
     const body = {
@@ -98,92 +122,87 @@ const MediaReview = ({ reviews, media, mediaType }) => {
       mediaId: media.id,
       mediaType,
       mediaTitle: media.title || media.name,
-      mediaPoster: media.poster_path
+      mediaPoster: media.poster_path,
     };
 
     const { response, err } = await reviewApi.add(body);
 
     setOnRequest(false);
 
-    if (err) toast.error(err.message);
-    if (response) {
-      toast.success("Post review success");
-
-      setFilteredReviews([...filteredReviews, response]);
-      setReviewCount(reviewCount + 1);
+    if (err) {
+      toast.error(err.message);
+    } else if (response) {
+      toast.success("Review posted successfully!");
+      setFilteredReviews([response, ...filteredReviews]);
+      setReviewCount((prev) => prev + 1);
       setContent("");
     }
   };
 
   const onLoadMore = () => {
-    setFilteredReviews([...filteredReviews, ...[...listReviews].splice(page * skip, skip)]);
-    setPage(page + 1);
+    setFilteredReviews((prev) => [
+      ...prev,
+      ...listReviews.slice(page * itemsPerPage, (page + 1) * itemsPerPage),
+    ]);
+    setPage((prev) => prev + 1);
   };
 
   const onRemoved = (id) => {
-    if (listReviews.findIndex(e => e.id === id) !== -1) {
-      const newListReviews = [...listReviews].filter(e => e.id !== id);
-      setListReviews(newListReviews);
-      setFilteredReviews([...newListReviews].splice(0, page * skip));
-    } else {
-      setFilteredReviews([...filteredReviews].filter(e => e.id !== id));
-    }
+    const updatedList = listReviews.filter((review) => review.id !== id);
+    setListReviews(updatedList);
+    setFilteredReviews(updatedList.slice(0, page * itemsPerPage));
+    setReviewCount((prev) => prev - 1);
 
-    setReviewCount(reviewCount - 1);
-
-    toast.success("Remove review success");
+    toast.success("Review removed successfully!");
   };
 
   return (
-    <>
-      <Container header={`Reviews (${reviewCount})`}>
-        <Stack spacing={4} marginBottom={2}>
-          {filteredReviews.map((item) => (
-            item.user ? <Box key={item.id}>
-              <ReviewItem review={item} onRemoved={onRemoved} />
-              <Divider sx={{
-                display: { xs: "block", md: "none" }
-              }} />
-            </Box> : null
-          ))}
-          {filteredReviews.length < listReviews.length && (
-            <Button onClick={onLoadMore}>load more</Button>
-          )}
-        </Stack>
-        {user && (
-          <>
-            <Divider />
-            <Stack direction="row" spacing={2}>
-              <TextAvatar text={user.displayName} />
-              <Stack spacing={2} flexGrow={1}>
-                <Typography variant="h6" fontWeight="700">
-                  {user.displayName}
-                </Typography>
-                <TextField
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  multiline
-                  rows={4}
-                  placeholder="Write your review"
-                  variant="outlined"
-                />
-                <LoadingButton
-                  variant="contained"
-                  size="large"
-                  sx={{ width: "max-content" }}
-                  startIcon={<SendOutlinedIcon />}
-                  loadingPosition="start"
-                  loading={onRequest}
-                  onClick={onAddReview}
-                >
-                  post
-                </LoadingButton>
-              </Stack>
-            </Stack>
-          </>
+    <Container header={`Reviews (${reviewCount})`}>
+      <Stack spacing={4} marginBottom={2}>
+        {filteredReviews.map(
+          (item) =>
+            item.user && (
+              <Box key={item.id}>
+                <ReviewItem review={item} onRemoved={onRemoved} />
+                <Divider sx={{ display: { xs: "block", md: "none" } }} />
+              </Box>
+            )
         )}
-      </Container>
-    </>
+        {filteredReviews.length < listReviews.length && (
+          <Button onClick={onLoadMore}>Load More</Button>
+        )}
+      </Stack>
+      {user && (
+        <>
+          <Divider />
+          <Stack direction="row" spacing={2}>
+            <TextAvatar text={user.displayName} />
+            <Stack spacing={2} flexGrow={1}>
+              <Typography variant="h6" fontWeight="700">
+                {user.displayName}
+              </Typography>
+              <TextField
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                multiline
+                rows={4}
+                placeholder="Write your review"
+                variant="outlined"
+              />
+              <LoadingButton
+                variant="contained"
+                size="large"
+                startIcon={<SendOutlinedIcon />}
+                loading={onRequest}
+                onClick={onAddReview}
+              >
+                Post
+              </LoadingButton>
+            </Stack>
+          </Stack>
+        </>
+      )}
+    </Container>
   );
 };
 

@@ -1,6 +1,7 @@
 // modules/feedback.js
 
 import privateClient from "../client/private.client";
+import publicClient from "../../api/client/public.client"; // Replace with your configured Axios instance
 
 const feedbackEndpoints = {
   submit: "feedback/submit-feedback", // Modify the endpoint as per your backend route
@@ -16,10 +17,11 @@ const feedbackApi = {
       return { err };
     }
   },
+
   fetchFeedback: async () => {
     try {
-      const response = await privateClient.get(feedbackEndpoints.fetch);
-      return { response };
+      const response = await publicClient.get(feedbackEndpoints.fetch);
+      return  response ;
     } catch (err) {
       return { err };
     }
@@ -59,4 +61,3 @@ export default feedbackApi;
 // };
 
 // export default feedbackApi;
-

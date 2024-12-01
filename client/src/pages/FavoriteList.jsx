@@ -11,92 +11,109 @@ import favoriteApi from "../api/modules/favorite.api";
 import { setGlobalLoading } from "../redux/features/globalLoadingSlice";
 import { removeFavorite } from "../redux/features/userSlice";
 
+/**
+ * Component representing an individual favorite item.
+ * - Displays the media item and provides functionality to remove it from the favorites list.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.media - The media object representing the favorite.
+ * @param {Function} props.onRemoved - Callback invoked when the item is removed.
+ */
 const FavoriteItem = ({ media, onRemoved }) => {
   const dispatch = useDispatch();
-
   const [onRequest, setOnRequest] = useState(false);
 
   const onRemove = async () => {
     if (onRequest) return;
+
     setOnRequest(true);
     const { response, err } = await favoriteApi.remove({ favoriteId: media.id });
     setOnRequest(false);
 
-    if (err) toast.error(err.message);
-    if (response) {
-      toast.success("Remove favorite success");
+    if (err) {
+      toast.error(err.message);
+    } else if (response) {
+      toast.success("Favorite removed successfully");
       dispatch(removeFavorite({ mediaId: media.mediaId }));
       onRemoved(media.id);
     }
   };
 
-  return (<>
-    <MediaItem media={media} mediaType={media.mediaType} />
-    <LoadingButton
-      fullWidth
-      variant="contained"
-      sx={{ marginTop: 2 }}
-      startIcon={<DeleteIcon />}
-      loadingPosition="start"
-      loading={onRequest}
-      onClick={onRemove}
-    >
-      remove
-    </LoadingButton>
-  </>);
+  return (
+    <>
+      <MediaItem media={media} mediaType={media.mediaType} />
+      <LoadingButton
+        fullWidth
+        variant="contained"
+        sx={{ marginTop: 2 }}
+        startIcon={<DeleteIcon />}
+        loadingPosition="start"
+        loading={onRequest}
+        onClick={onRemove}
+      >
+        Remove
+      </LoadingButton>
+    </>
+  );
 };
 
+/**
+ * Component representing the list of favorite items.
+ * - Fetches the user's favorites from the API and displays them.
+ * - Provides functionality to load more items and remove items.
+ */
 const FavoriteList = () => {
   const [medias, setMedias] = useState([]);
   const [filteredMedias, setFilteredMedias] = useState([]);
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
-
   const dispatch = useDispatch();
 
-  const skip = 8;
+  const itemsPerPage = 8;
 
   useEffect(() => {
-    const getFavorites = async () => {
+    const fetchFavorites = async () => {
       dispatch(setGlobalLoading(true));
       const { response, err } = await favoriteApi.getList();
       dispatch(setGlobalLoading(false));
 
-      if (err) toast.error(err.message);
-      if (response) {
+      if (err) {
+        toast.error(err.message);
+      } else if (response) {
         setCount(response.length);
-        setMedias([...response]);
-        setFilteredMedias([...response].splice(0, skip));
+        setMedias(response);
+        setFilteredMedias(response.slice(0, itemsPerPage));
       }
     };
 
-    getFavorites();
-  }, []);
+    fetchFavorites();
+  }, [dispatch]);
 
   const onLoadMore = () => {
-    setFilteredMedias([...filteredMedias, ...[...medias].splice(page * skip, skip)]);
-    setPage(page + 1);
+    const nextPageItems = medias.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+    setFilteredMedias((prev) => [...prev, ...nextPageItems]);
+    setPage((prev) => prev + 1);
   };
 
   const onRemoved = (id) => {
-    const newMedias = [...medias].filter(e => e.id !== id);
-    setMedias(newMedias);
-    setFilteredMedias([...newMedias].splice(0, page * skip));
-    setCount(count - 1);
+    const updatedMedias = medias.filter((media) => media.id !== id);
+    setMedias(updatedMedias);
+    setFilteredMedias(updatedMedias.slice(0, page * itemsPerPage));
+    setCount((prev) => prev - 1);
   };
 
   return (
     <Box sx={{ ...uiConfigs.style.mainContent }}>
-      <Container header={`Your favorites (${count})`}>
+      <Container header={`Your Favorites (${count})`}>
         <Grid container spacing={1} sx={{ marginRight: "-8px!important" }}>
-          {filteredMedias.map((media, index) => (
-            <Grid item xs={6} sm={4} md={3} key={index}>
+          {filteredMedias.map((media) => (
+            <Grid item xs={6} sm={4} md={3} key={media.id}>
               <FavoriteItem media={media} onRemoved={onRemoved} />
             </Grid>
           ))}
         </Grid>
         {filteredMedias.length < medias.length && (
-          <Button onClick={onLoadMore}>load more</Button>
+          <Button onClick={onLoadMore}>Load More</Button>
         )}
       </Container>
     </Box>

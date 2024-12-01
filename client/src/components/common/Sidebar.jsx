@@ -1,4 +1,13 @@
-import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Stack, Toolbar, Typography } from "@mui/material";
+import {
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import menuConfigs from "../../configs/menu.configs";
@@ -10,6 +19,15 @@ import WbSunnyOutlinedIcon from "@mui/icons-material/WbSunnyOutlined";
 import { themeModes } from "../../configs/theme.configs";
 import { setThemeMode } from "../../redux/features/themeModeSlice";
 
+/**
+ * Sidebar Component
+ * - Displays a navigational sidebar with menus for both main and personal sections.
+ * - Allows theme switching between light and dark modes.
+ *
+ * @param {Object} props - Component props.
+ * @param {boolean} props.open - Determines whether the sidebar is open.
+ * @param {Function} props.toggleSidebar - Function to toggle the sidebar's visibility.
+ */
 const Sidebar = ({ open, toggleSidebar }) => {
   const dispatch = useDispatch();
 
@@ -19,72 +37,95 @@ const Sidebar = ({ open, toggleSidebar }) => {
 
   const sidebarWidth = uiConfigs.size.sidebarWith;
 
+  /**
+   * Toggles the theme mode between light and dark.
+   */
   const onSwitchTheme = () => {
-    const theme = themeMode === themeModes.dark ? themeModes.light : themeModes.dark;
-    dispatch(setThemeMode(theme));
+    const newTheme = themeMode === themeModes.dark ? themeModes.light : themeModes.dark;
+    dispatch(setThemeMode(newTheme));
   };
 
-  const drawer = (
+  /**
+   * Renders the sidebar content, including menus and theme toggle.
+   */
+  const drawerContent = (
     <>
+      {/* Logo */}
       <Toolbar sx={{ paddingY: "20px", color: "text.primary" }}>
         <Stack width="100%" direction="row" justifyContent="center">
           <Logo />
         </Stack>
       </Toolbar>
+
       <List sx={{ paddingX: "30px" }}>
-        <Typography variant="h6" marginBottom="20px">MENU</Typography>
+        {/* Main Menu */}
+        <Typography variant="h6" marginBottom="20px">
+          MENU
+        </Typography>
         {menuConfigs.main.map((item, index) => (
           <ListItemButton
             key={index}
             sx={{
               borderRadius: "10px",
               marginY: 1,
-              backgroundColor: appState.includes(item.state) ? "primary.main" : "unset"
+              backgroundColor: appState.includes(item.state) ? "primary.main" : "unset",
             }}
             component={Link}
             to={item.path}
             onClick={() => toggleSidebar(false)}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText disableTypography primary={<Typography textTransform="uppercase">
-              {item.display}
-            </Typography>} />
+            <ListItemText
+              disableTypography
+              primary={<Typography textTransform="uppercase">{item.display}</Typography>}
+            />
           </ListItemButton>
         ))}
 
-        {user && (<>
-          <Typography variant="h6" marginBottom="20px">PERSONAL</Typography>
-          {menuConfigs.user.map((item, index) => (
-            <ListItemButton
-              key={index}
-              sx={{
-                borderRadius: "10px",
-                marginY: 1,
-                backgroundColor: appState.includes(item.state) ? "primary.main" : "unset"
-              }}
-              component={Link}
-              to={item.path}
-              onClick={() => toggleSidebar(false)}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText disableTypography primary={<Typography textTransform="uppercase">
-                {item.display}
-              </Typography>} />
-            </ListItemButton>
-          ))}
-        </>)}
+        {/* Personal Menu (if user is logged in) */}
+        {user && (
+          <>
+            <Typography variant="h6" marginBottom="20px">
+              PERSONAL
+            </Typography>
+            {menuConfigs.user.map((item, index) => (
+              <ListItemButton
+                key={index}
+                sx={{
+                  borderRadius: "10px",
+                  marginY: 1,
+                  backgroundColor: appState.includes(item.state) ? "primary.main" : "unset",
+                }}
+                component={Link}
+                to={item.path}
+                onClick={() => toggleSidebar(false)}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText
+                  disableTypography
+                  primary={<Typography textTransform="uppercase">{item.display}</Typography>}
+                />
+              </ListItemButton>
+            ))}
+          </>
+        )}
 
-        <Typography variant="h6" marginBottom="20px">THEME</Typography>
+        {/* Theme Toggle */}
+        <Typography variant="h6" marginBottom="20px">
+          THEME
+        </Typography>
         <ListItemButton onClick={onSwitchTheme}>
           <ListItemIcon>
-            {themeMode === themeModes.dark && <DarkModeOutlinedIcon />}
-            {themeMode === themeModes.light && <WbSunnyOutlinedIcon />}
+            {themeMode === themeModes.dark ? <DarkModeOutlinedIcon /> : <WbSunnyOutlinedIcon />}
           </ListItemIcon>
-          <ListItemText disableTypography primary={
-            <Typography textTransform="uppercase">
-              {themeMode === themeModes.dark ? "dark mode" : "light mode"}
-            </Typography>
-          } />
+          <ListItemText
+            disableTypography
+            primary={
+              <Typography textTransform="uppercase">
+                {themeMode === themeModes.dark ? "dark mode" : "light mode"}
+              </Typography>
+            }
+          />
         </ListItemButton>
       </List>
     </>
@@ -97,12 +138,12 @@ const Sidebar = ({ open, toggleSidebar }) => {
       sx={{
         "& .MuiDrawer-Paper": {
           boxSizing: "border-box",
-          widh: sidebarWidth,
-          borderRight: "0px"
-        }
+          width: sidebarWidth,
+          borderRight: "0px",
+        },
       }}
     >
-      {drawer}
+      {drawerContent}
     </Drawer>
   );
 };

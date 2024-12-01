@@ -9,73 +9,81 @@ import ReviewList from "../pages/ReviewList";
 import ProtectedPage from "../components/common/ProtectedPage";
 import FeedbackSpreadsheet from "../pages/FeedbackSpreadsheet";
 
+/**
+ * Route generator functions for constructing dynamic paths.
+ */
 export const routesGen = {
-  home: "/",
-  mediaList: (type) => `/${type}`,
-  mediaDetail: (type, id) => `/${type}/${id}`,
-  mediaSearch: "/search",
-  person: (id) => `/person/${id}`,
-  favoriteList: "/favorites",
-  reviewList: "/reviews",
-  feedback: "/feedback",
-  passwordUpdate: "password-update"
+  home: "/", // Home page route
+  mediaList: (type) => `/${type}`, // Route for media list (e.g., "movie" or "tv")
+  mediaDetail: (type, id) => `/${type}/${id}`, // Route for specific media details
+  mediaSearch: "/search", // Route for search page
+  person: (id) => `/person/${id}`, // Route for person detail page
+  favoriteList: "/favorites", // Route for favorite list page
+  reviewList: "/reviews", // Route for review list page
+  feedback: "/feedback", // Route for feedback spreadsheet page
+  passwordUpdate: "/password-update", // Route for password update page
 };
 
+/**
+ * Static route configuration for the application.
+ * - Defines path-to-component mapping for all routes.
+ * - Includes protected routes wrapped with <ProtectedPage>.
+ */
 const routes = [
   {
-    index: true,
-    element: <HomePage />,
-    state: "home"
+    index: true, // Default route
+    element: <HomePage />, // Component to render
+    state: "home", // State identifier
   },
   {
-    path: "/person/:personId",
+    path: "/person/:personId", // Dynamic route for person details
     element: <PersonDetail />,
-    state: "person.detail"
+    state: "person.detail",
   },
   {
-    path: "/search",
+    path: "/search", // Search page route
     element: <MediaSearch />,
-    state: "search"
+    state: "search",
   },
   {
-    path: "/password-update",
+    path: "/password-update", // Password update page (protected)
     element: (
       <ProtectedPage>
         <PasswordUpdate />
       </ProtectedPage>
     ),
-    state: "password.update"
+    state: "password.update",
   },
   {
-    path: "/favorites",
+    path: "/favorites", // Favorite list page (protected)
     element: (
       <ProtectedPage>
         <FavoriteList />
       </ProtectedPage>
     ),
-    state: "favorites"
+    state: "favorites",
   },
   {
-    path: "/reviews",
+    path: "/reviews", // Review list page (protected)
     element: (
       <ProtectedPage>
         <ReviewList />
       </ProtectedPage>
     ),
-    state: "reviews"
+    state: "reviews",
   },
   {
-    path: "/:mediaType",
-    element: <MediaList />
+    path: "/:mediaType", // Dynamic route for media list
+    element: <MediaList />,
   },
   {
-    path: "/:mediaType/:mediaId",
-    element: <MediaDetail />
+    path: "/:mediaType/:mediaId", // Dynamic route for media details
+    element: <MediaDetail />,
   },
   {
-    path: "/feedback",
-    element: <FeedbackSpreadsheet />
-  }
+    path: "/feedback", // Feedback spreadsheet page
+    element: <FeedbackSpreadsheet />,
+  },
 ];
 
 export default routes;

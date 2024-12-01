@@ -7,27 +7,31 @@ import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
 import LockResetOutlinedIcon from "@mui/icons-material/LockResetOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 
+/**
+ * Main Menu Configuration
+ * - Represents primary navigation options available to all users.
+ */
 const main = [
   {
-    display: "home",
+    display: "Home",
     path: "/",
     icon: <HomeOutlinedIcon />,
     state: "home",
   },
   {
-    display: "movies",
+    display: "Movies",
     path: "/movie",
     icon: <SlideshowOutlinedIcon />,
     state: "movie",
   },
   {
-    display: "tv series",
+    display: "TV Series",
     path: "/tv",
     icon: <LiveTvOutlinedIcon />,
     state: "tv",
   },
   {
-    display: "search",
+    display: "Search",
     path: "/search",
     icon: <SearchOutlinedIcon />,
     state: "search",
@@ -40,27 +44,34 @@ const main = [
   },
 ];
 
+/**
+ * User Menu Configuration
+ * - Represents additional navigation options available to authenticated users.
+ */
 const user = [
   {
-    display: "favorites",
+    display: "Favorites",
     path: "/favorites",
     icon: <FavoriteBorderOutlinedIcon />,
     state: "favorite",
   },
   {
-    display: "reviews",
+    display: "Reviews",
     path: "/reviews",
     icon: <RateReviewOutlinedIcon />,
     state: "reviews",
   },
   {
-    display: "password update",
+    display: "Password Update",
     path: "/password-update",
     icon: <LockResetOutlinedIcon />,
     state: "password.update",
   },
 ];
 
+/**
+ * Consolidated Menu Configurations
+ */
 const menuConfigs = { main, user };
 
 export default menuConfigs;

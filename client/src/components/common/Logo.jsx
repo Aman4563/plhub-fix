@@ -1,24 +1,27 @@
-import { Typography, useTheme } from '@mui/material';
+import { Typography } from "@mui/material";
 
+/**
+ * Logo Component
+ * - Displays a clickable logo that redirects to the home page.
+ * - The logo supports a gradient effect for styling.
+ */
 const Logo = () => {
-  const theme = useTheme();
-
   return (
-    <div>
-      
     <Typography fontWeight="700" fontSize="1.7rem">
-      {/* Moon<span style={{ color: theme.palette.primary.main }}>Flix</span> */}
-      <a href="/">
-      <img src="/logo_v3.svg" alt="Logo" style={{
-    background: 'linear-gradient(45deg, #864d25, #ffD700)',
-    WebkitBackgroundClip: 'text', // For webkit browsers to apply gradient to text
-    WebkitTextFillColor: 'transparent', // For webkit browsers to make text transparent
-    width: '7rem',
-    height: 'auto'
-  }} />
+      <a href="/" style={{ textDecoration: "none" }}>
+        <img
+          src="/logo_v3.svg"
+          alt="Logo"
+          style={{
+            background: "linear-gradient(45deg, #864d25, #FFD700)", // Gradient effect
+            WebkitBackgroundClip: "text", // Apply gradient to text for WebKit browsers
+            WebkitTextFillColor: "transparent", // Make text transparent to show gradient
+            width: "7rem", // Set logo width
+            height: "auto", // Maintain aspect ratio
+          }}
+        />
       </a>
     </Typography>
-    </div>
   );
 };
 

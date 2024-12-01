@@ -8,124 +8,207 @@ import * as Yup from "yup";
 import userApi from "../../api/modules/user.api";
 import { setAuthModalOpen } from "../../redux/features/authModalSlice";
 import { setUser } from "../../redux/features/userSlice";
+import ReCAPTCHA from "react-google-recaptcha";
+import useGoogleOAuth from "../../hooks/useGoogleOAuth";
 
+/**
+ * SignupForm Component
+ * - Allows users to sign up with manual inputs or Google OAuth.
+ * - Includes ReCAPTCHA validation for added security.
+ *
+ * @param {Object} props - Component props.
+ * @param {Function} props.switchAuthState - Function to switch to the Sign In form.
+ */
 const SignupForm = ({ switchAuthState }) => {
   const dispatch = useDispatch();
 
-  const [isLoginRequest, setIsLoginRequest] = useState(false);
-  const [errorMessage, setErrorMessage] = useState();
+  const [isSignupRequest, setIsSignupRequest] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [captchaToken, setCaptchaToken] = useState(null);
 
-  const signinForm = useFormik({
+  /**
+   * Handles Google Sign-In.
+   * @param {Object} response - Google Sign-In response containing the credential (JWT token).
+   */
+  const handleGoogleSignIn = async (response) => {
+    try {
+      setIsSignupRequest(true);
+      const { credential: tokenId } = response;
+      const { response: data, err } = await userApi.googleSignin({ tokenId });
+
+      if (err) {
+        setErrorMessage("Google Sign-in failed. Please try again.");
+        toast.error("Google Sign-in failed.");
+      } else if (data?.token) {
+        // Save the JWT token and update Redux state
+        localStorage.setItem("actkn", data.token);
+        dispatch(setUser(data));
+        dispatch(setAuthModalOpen(false));
+        toast.success("Google Sign-in successful!");
+      } else {
+        setErrorMessage("Google Sign-in failed. Please try again.");
+        toast.error("Google Sign-in failed.");
+      }
+    } catch (error) {
+      setErrorMessage("Google Sign-in error. Please try again.");
+      toast.error("Google Sign-in error.");
+    } finally {
+      setIsSignupRequest(false);
+    }
+  };
+
+  // Initialize Google OAuth with the custom hook
+  useGoogleOAuth(
+    process.env.REACT_APP_GOOGLE_CLIENT_ID,
+    "googleSignInButton",
+    handleGoogleSignIn
+  );
+
+  /**
+   * Handles ReCAPTCHA token change.
+   * @param {string} token - The ReCAPTCHA token.
+   */
+  const handleCaptchaChange = (token) => {
+    setCaptchaToken(token);
+  };
+
+  // Formik form management for manual signup
+  const signupForm = useFormik({
     initialValues: {
-      password: "",
       username: "",
+      email: "",
       displayName: "",
-      confirmPassword: ""
+      password: "",
+      confirmPassword: "",
     },
     validationSchema: Yup.object({
       username: Yup.string()
-        .min(8, "username minimum 8 characters")
-        .required("username is required"),
-      password: Yup.string()
-        .min(8, "password minimum 8 characters")
-        .required("password is required"),
+        .min(8, "Username must be at least 8 characters")
+        .required("Username is required"),
+      email: Yup.string()
+        .email("Invalid email address")
+        .required("Email is required"),
       displayName: Yup.string()
-        .min(8, "displayName minimum 8 characters")
-        .required("displayName is required"),
+        .min(8, "Display name must be at least 8 characters")
+        .required("Display name is required"),
+      password: Yup.string()
+        .min(8, "Password must be at least 8 characters")
+        .required("Password is required"),
       confirmPassword: Yup.string()
-        .oneOf([Yup.ref("password")], "confirmPassword not match")
-        .min(8, "confirmPassword minimum 8 characters")
-        .required("confirmPassword is required")
+        .oneOf([Yup.ref("password")], "Passwords must match")
+        .required("Confirm password is required"),
     }),
-    onSubmit: async values => {
-      setErrorMessage(undefined);
-      setIsLoginRequest(true);
-      console.log("asdasdasdasd");
-      const { response, err } = await userApi.signup(values);
-      setIsLoginRequest(false);
+    onSubmit: async (values) => {
+      setErrorMessage(null);
 
-      if (response) {
-        signinForm.resetForm();
-        dispatch(setUser(response));
-        dispatch(setAuthModalOpen(false));
-        toast.success("Sign in success");
+      if (!captchaToken) {
+        setErrorMessage("Please complete the CAPTCHA");
+        return;
       }
 
-      if (err) setErrorMessage(err.message);
-    }
+      setIsSignupRequest(true);
+      const { response, err } = await userApi.signup({ ...values, captchaToken });
+      setIsSignupRequest(false);
+
+      if (response) {
+        signupForm.resetForm();
+        dispatch(setUser(response));
+        dispatch(setAuthModalOpen(false));
+        toast.success("Sign up successful!");
+      } else if (err) {
+        setErrorMessage(err.message);
+      }
+    },
   });
 
   return (
-    <Box component="form" onSubmit={signinForm.handleSubmit}>
+    <Box component="form" onSubmit={signupForm.handleSubmit}>
       <Stack spacing={3}>
+        {/* Input Fields */}
         <TextField
           type="text"
-          placeholder="username"
+          placeholder="Username"
           name="username"
           fullWidth
-          value={signinForm.values.username}
-          onChange={signinForm.handleChange}
-          color="success"
-          error={signinForm.touched.username && signinForm.errors.username !== undefined}
-          helperText={signinForm.touched.username && signinForm.errors.username}
+          value={signupForm.values.username}
+          onChange={signupForm.handleChange}
+          error={Boolean(signupForm.touched.username && signupForm.errors.username)}
+          helperText={signupForm.touched.username && signupForm.errors.username}
+        />
+        <TextField
+          type="email"
+          placeholder="Email"
+          name="email"
+          fullWidth
+          value={signupForm.values.email}
+          onChange={signupForm.handleChange}
+          error={Boolean(signupForm.touched.email && signupForm.errors.email)}
+          helperText={signupForm.touched.email && signupForm.errors.email}
         />
         <TextField
           type="text"
-          placeholder="display name"
+          placeholder="Display Name"
           name="displayName"
           fullWidth
-          value={signinForm.values.displayName}
-          onChange={signinForm.handleChange}
-          color="success"
-          error={signinForm.touched.displayName && signinForm.errors.displayName !== undefined}
-          helperText={signinForm.touched.displayName && signinForm.errors.displayName}
+          value={signupForm.values.displayName}
+          onChange={signupForm.handleChange}
+          error={Boolean(signupForm.touched.displayName && signupForm.errors.displayName)}
+          helperText={signupForm.touched.displayName && signupForm.errors.displayName}
         />
         <TextField
           type="password"
-          placeholder="password"
+          placeholder="Password"
           name="password"
           fullWidth
-          value={signinForm.values.password}
-          onChange={signinForm.handleChange}
-          color="success"
-          error={signinForm.touched.password && signinForm.errors.password !== undefined}
-          helperText={signinForm.touched.password && signinForm.errors.password}
+          value={signupForm.values.password}
+          onChange={signupForm.handleChange}
+          error={Boolean(signupForm.touched.password && signupForm.errors.password)}
+          helperText={signupForm.touched.password && signupForm.errors.password}
         />
         <TextField
           type="password"
-          placeholder="confirm password"
+          placeholder="Confirm Password"
           name="confirmPassword"
           fullWidth
-          value={signinForm.values.confirmPassword}
-          onChange={signinForm.handleChange}
-          color="success"
-          error={signinForm.touched.confirmPassword && signinForm.errors.confirmPassword !== undefined}
-          helperText={signinForm.touched.confirmPassword && signinForm.errors.confirmPassword}
+          value={signupForm.values.confirmPassword}
+          onChange={signupForm.handleChange}
+          error={Boolean(signupForm.touched.confirmPassword && signupForm.errors.confirmPassword)}
+          helperText={signupForm.touched.confirmPassword && signupForm.errors.confirmPassword}
+        />
+
+        {/* ReCAPTCHA */}
+        <ReCAPTCHA
+          sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+          onChange={handleCaptchaChange}
         />
       </Stack>
 
+      {/* Signup Button */}
       <LoadingButton
         type="submit"
         fullWidth
         size="large"
         variant="contained"
         sx={{ marginTop: 4 }}
-        loading={isLoginRequest}
+        loading={isSignupRequest}
       >
-        sign up
+        Sign up
       </LoadingButton>
 
-      <Button
-        fullWidth
-        sx={{ marginTop: 1 }}
-        onClick={() => switchAuthState()}
-      >
-        sign in
+      {/* Google Sign-In Button */}
+      <Box id="googleSignInButton" sx={{ marginTop: 2, textAlign: "center" }} />
+
+      {/* Switch to Sign In */}
+      <Button fullWidth sx={{ marginTop: 1 }} onClick={switchAuthState}>
+        Sign in
       </Button>
 
+      {/* Error Message */}
       {errorMessage && (
         <Box sx={{ marginTop: 2 }}>
-          <Alert severity="error" variant="outlined" >{errorMessage}</Alert>
+          <Alert severity="error" variant="outlined">
+            {errorMessage}
+          </Alert>
         </Box>
       )}
     </Box>

@@ -1,32 +1,61 @@
-import express from "express";
-import cookieParser from "cookie-parser";
-import cors from "cors";
-import http from "http";
-import mongoose from "mongoose";
-import "dotenv/config";
-import routes from "./src/routes/index.js";
+// Import necessary modules and libraries
+import express from "express"; // Framework for building web applications
+import cookieParser from "cookie-parser"; // Middleware for parsing cookies
+import cors from "cors"; // Middleware for enabling CORS
+import http from "http"; // HTTP module for creating server
+import mongoose from "mongoose"; // ODM for MongoDB
+import "dotenv/config"; // Loads environment variables from a .env file
+import routes from "./src/routes/index.js"; // Importing route handlers
 
+// Initialize Express application
 const app = express();
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+// Middleware setup
+app.use(cors()); // Enable Cross-Origin Resource Sharing (CORS) for all routes
+app.use(express.json()); // Parse incoming JSON requests
+app.use(express.urlencoded({ extended: false })); // Parse URL-encoded payloads
+app.use(cookieParser()); // Parse and populate cookies in request objects
 
-app.use("/api/v1", routes);
+// Route configuration
+app.use("/api/v1", routes); // Define base route for API
 
-const port = process.env.PORT || 5000;
+// Server configuration
+const port = process.env.PORT || 5000; // Define server port (from environment variables or default to 5000)
+const server = http.createServer(app); // Create HTTP server instance
 
-const server = http.createServer(app);
+// MongoDB connection and server start
+mongoose
+  .connect(process.env.MONGODB_URL, {
+    useNewUrlParser: true, // Avoid deprecation warnings
+    useUnifiedTopology: true, // Ensure stable connection
+  })
+  .then(() => {
+    console.log("MongoDB connected"); // Log successful database connection
 
-mongoose.connect(process.env.MONGODB_URL).then(() => {
-  console.log("Mongodb connected");
-  server.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
+    // Start the server
+    server.listen(port, () => {
+      console.log(`Server is listening on port ${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Database connection failed:", error); // Log connection error details
+    process.exit(1); // Exit process with failure code
   });
-}).catch((err) => {
-  console.log({ err });
-  process.exit(1);
-});
 
-//test
+/**
+ * Main application entry point.
+ *
+ * - Uses Express.js as the framework for HTTP server functionality.
+ * - Connects to MongoDB via Mongoose.
+ * - Loads API routes from the "routes" module.
+ *
+ * Features:
+ * - CORS for cross-origin requests.
+ * - Cookie parsing for handling client cookies.
+ * - JSON and URL-encoded request body parsing.
+ * - Graceful error handling for database connection failures.
+ *
+ * Environment Variables Required:
+ * - `PORT`: Port number for the server (default: 5000).
+ * - `MONGODB_URL`: Connection string for MongoDB.
+ */

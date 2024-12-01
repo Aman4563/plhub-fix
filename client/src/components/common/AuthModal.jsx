@@ -1,51 +1,146 @@
 import { Box, Modal } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setAuthModalOpen } from "../../redux/features/authModalSlice";
+import { setAuthModalOpen, clearAuthError } from "../../redux/features/authModalSlice";
 import Logo from "./Logo";
 import SigninForm from "./SigninForm";
 import SignupForm from "./SignupForm";
+import userApi from "../../api/modules/user.api";
 
 const actionState = {
   signin: "signin",
-  signup: "signup"
+  signup: "signup",
 };
 
+/**
+ * AuthModal Component
+ * - Handles user authentication through signin/signup forms and Google OAuth.
+ */
 const AuthModal = () => {
   const { authModalOpen } = useSelector((state) => state.authModal);
-
   const dispatch = useDispatch();
 
   const [action, setAction] = useState(actionState.signin);
 
+  /**
+   * Sets up Google Sign-In and default action on modal open.
+   */
   useEffect(() => {
-    if (authModalOpen) setAction(actionState.signin);
-  }, [authModalOpen]);
+    if (authModalOpen) {
+      setAction(actionState.signin);
+      dispatch(clearAuthError());
+    }
 
-  const handleClose = () => dispatch(setAuthModalOpen(false));
+    if (!document.getElementById("google-oauth-script")) {
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.id = "google-oauth-script";
+      script.async = true;
+      script.defer = true;
+      script.onload = renderGoogleButton;
+      document.body.appendChild(script);
+    } else {
+      renderGoogleButton();
+    }
 
-  const switchAuthState = (state) => setAction(state);
+    function renderGoogleButton() {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+          callback: handleGoogleSignIn,
+        });
+
+        window.google.accounts.id.renderButton(
+          document.getElementById("googleSignInButton"),
+          {
+            theme: "outline",
+            size: "large",
+            width: "100%",
+          }
+        );
+      }
+    }
+
+    return () => {
+      if (!authModalOpen && document.getElementById("googleSignInButton")) {
+        document.getElementById("googleSignInButton").innerHTML = "";
+      }
+    };
+  }, [authModalOpen, dispatch]);
+
+  /**
+   * Handles modal close event.
+   */
+  const handleClose = () => {
+    dispatch(setAuthModalOpen(false));
+    dispatch(clearAuthError());
+  };
+
+  /**
+   * Switches between signin and signup forms.
+   *
+   * @param {string} state - The new action state.
+   */
+  const switchAuthState = (state) => {
+    setAction(state);
+    dispatch(clearAuthError());
+  };
+
+  /**
+   * Handles Google Sign-In callback.
+   *
+   * @param {Object} response - Google OAuth response object.
+   */
+  const handleGoogleSignIn = async (response) => {
+    try {
+      const { credential: tokenId } = response;
+      const { response: data, err } = await userApi.googleSignin({ tokenId });
+
+      if (err) {
+        dispatch(setAuthModalOpen(false));
+      } else {
+        dispatch(setAuthModalOpen(false));
+      }
+    } catch (error) {
+      dispatch(setAuthModalOpen(false));
+    }
+  };
 
   return (
     <Modal open={authModalOpen} onClose={handleClose}>
-      <Box sx={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        maxWidth: "600px",
-        padding: 4,
-        outline: "none"
-      }}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "100%",
+          maxWidth: "600px",
+          padding: 4,
+          outline: "none",
+        }}
+      >
         <Box sx={{ padding: 4, boxShadow: 24, backgroundColor: "background.paper" }}>
+          {/* Logo */}
           <Box sx={{ textAlign: "center", marginBottom: "2rem" }}>
             <Logo />
           </Box>
 
-          {action === actionState.signin && <SigninForm switchAuthState={() => switchAuthState(actionState.signup)} />}
+          {/* Signin Form */}
+          {action === actionState.signin && (
+            <>
+              <SigninForm switchAuthState={() => switchAuthState(actionState.signup)} />
+              <Box id="googleSignInButton" sx={{ textAlign: "center", marginTop: "1rem" }}></Box>
+            </>
+          )}
 
-          {action === actionState.signup && <SignupForm switchAuthState={() => switchAuthState(actionState.signin)} />}
+          {/* Signup Form */}
+          {action === actionState.signup && (
+            <>
+              <SignupForm switchAuthState={() => switchAuthState(actionState.signin)} />
+              <Box id="googleSignInButton" sx={{ textAlign: "center", marginTop: "1rem" }}></Box>
+            </>
+          )}
         </Box>
       </Box>
     </Modal>

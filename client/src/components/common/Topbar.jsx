@@ -13,44 +13,71 @@ import Logo from "./Logo";
 import UserMenu from "./UserMenu";
 import Sidebar from "./Sidebar";
 
+/**
+ * ScrollAppBar Component
+ * - Adjusts the appearance of the AppBar based on scroll position.
+ *
+ * @param {Object} props - Component props.
+ * @param {ReactNode} props.children - Child elements (typically AppBar).
+ * @param {function} [props.window] - Reference to the window object for scroll calculations.
+ */
 const ScrollAppBar = ({ children, window }) => {
   const { themeMode } = useSelector((state) => state.themeMode);
 
   const trigger = useScrollTrigger({
     disableHysteresis: true,
     threshold: 50,
-    target: window ? window() : undefined
+    target: window ? window() : undefined,
   });
 
   return cloneElement(children, {
     sx: {
       color: trigger ? "text.primary" : themeMode === themeModes.dark ? "primary.contrastText" : "text.primary",
-      backgroundColor: trigger ? "background.paper" : themeMode === themeModes.dark ? "transparent" : "background.paper"
-    }
+      backgroundColor: trigger
+        ? "background.paper"
+        : themeMode === themeModes.dark
+        ? "transparent"
+        : "background.paper",
+    },
   });
 };
+
+/**
+ * Topbar Component
+ * - Displays the main navigation bar with a responsive design.
+ * - Includes user authentication options, theme toggle, and a sidebar menu.
+ */
 const Topbar = () => {
   const { user } = useSelector((state) => state.user);
   const { appState } = useSelector((state) => state.appState);
   const { themeMode } = useSelector((state) => state.themeMode);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const dispatch = useDispatch();
 
-  const onSwithTheme = () => {
+  /**
+   * Toggles the theme mode between light and dark.
+   */
+  const onSwitchTheme = () => {
     const theme = themeMode === themeModes.dark ? themeModes.light : themeModes.dark;
     dispatch(setThemeMode(theme));
   };
 
+  /**
+   * Toggles the sidebar's open/close state.
+   */
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
     <>
+      {/* Sidebar Component */}
       <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} />
+
+      {/* Scrollable AppBar */}
       <ScrollAppBar>
         <AppBar elevation={0} sx={{ zIndex: 9999 }}>
           <Toolbar sx={{ alignItems: "center", justifyContent: "space-between" }}>
+            {/* Mobile Menu and Logo */}
             <Stack direction="row" spacing={1} alignItems="center">
               <IconButton
                 color="inherit"
@@ -59,14 +86,17 @@ const Topbar = () => {
               >
                 <MenuIcon />
               </IconButton>
-
               <Box sx={{ display: { xs: "inline-block", md: "none" } }}>
                 <Logo />
               </Box>
             </Stack>
 
-            {/* main menu */}
-            <Box flexGrow={1} alignItems="center" display={{ xs: "none", md: "flex" }}>
+            {/* Main Navigation Menu */}
+            <Box
+              flexGrow={1}
+              alignItems="center"
+              display={{ xs: "none", md: "flex" }}
+            >
               <Box sx={{ marginRight: "30px" }}>
                 <Logo />
               </Box>
@@ -75,7 +105,7 @@ const Topbar = () => {
                   key={index}
                   sx={{
                     color: appState.includes(item.state) ? "primary.contrastText" : "inherit",
-                    mr: 2
+                    mr: 2,
                   }}
                   component={Link}
                   to={item.path}
@@ -84,27 +114,24 @@ const Topbar = () => {
                   {item.display}
                 </Button>
               ))}
-              <IconButton
-                sx={{ color: "inherit" }}
-                onClick={onSwithTheme}
-              >
-                {themeMode === themeModes.dark && <DarkModeOutlinedIcon />}
-                {themeMode === themeModes.light && <WbSunnyOutlinedIcon />}
+              <IconButton sx={{ color: "inherit" }} onClick={onSwitchTheme}>
+                {themeMode === themeModes.dark ? <DarkModeOutlinedIcon /> : <WbSunnyOutlinedIcon />}
               </IconButton>
             </Box>
-            {/* main menu */}
 
-            {/* user menu */}
+            {/* User Authentication and Menu */}
             <Stack spacing={3} direction="row" alignItems="center">
-              {!user && <Button
-                variant="contained"
-                onClick={() => dispatch(setAuthModalOpen(true))}
-              >
-                sign in
-              </Button>}
+              {!user ? (
+                <Button
+                  variant="contained"
+                  onClick={() => dispatch(setAuthModalOpen(true))}
+                >
+                  Sign In
+                </Button>
+              ) : (
+                <UserMenu />
+              )}
             </Stack>
-            {user && <UserMenu />}
-            {/* user menu */}
           </Toolbar>
         </AppBar>
       </ScrollAppBar>
