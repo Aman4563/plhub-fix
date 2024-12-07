@@ -18,6 +18,7 @@ const privateClient = axios.create({
   paramsSerializer: {
     encode: params => queryString.stringify(params), // Serialize query parameters using `query-string`
   },
+  withCredentials: true
 });
 
 /**
@@ -34,6 +35,7 @@ privateClient.interceptors.request.use(
       ...config,
       headers: {
         ...config.headers, // Retain existing headers if any
+        Accept: "application/json",
         "Content-Type": "application/json", // Ensure JSON content type
         ...(token ? { Authorization: `Bearer ${token}` } : {}), // Conditionally include the Authorization header
       },

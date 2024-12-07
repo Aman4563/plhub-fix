@@ -24,6 +24,7 @@ const publicClient = axios.create({
      */
     encode: (params) => queryString.stringify(params),
   },
+  withCredentials: true
 });
 
 /**
@@ -36,8 +37,10 @@ publicClient.interceptors.request.use(async (config) => {
 
   // Define headers with default Content-Type.
   const headers = {
-    "Content-Type": "application/json",
+    Accept: "application/json",
+    "Content-Type": "application/json"
   };
+
 
   // Include the reCAPTCHA token if present.
   if (captchaToken) {
