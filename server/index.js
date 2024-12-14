@@ -15,7 +15,8 @@ const app = express();
 app.use(cors({
   origin: [
     "https://plhub-frontend-git-advancefeatur-85221b-amans-projects-62ecaac6.vercel.app/", // Add your frontend domain here
-    "https://plhub-frontend.vercel.app" // Production frontend domain (if applicable)
+    "https://plhub-frontend.vercel.app", // Production frontend domain (if applicable)
+    "*",
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
