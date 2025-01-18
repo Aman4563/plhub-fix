@@ -14,6 +14,8 @@ const get = async (url) => {
       headers: {
         Accept: "application/json",
         "Accept-Encoding": "identity", // Disable gzip encoding if needed
+        "Access-Control-Allow-Origin": "https://plhub-frontend-git-advancefeatur-85221b-amans-projects-62ecaac6.vercel.app",
+
       },
     });
 
