@@ -71,14 +71,53 @@ export const userSlice = createSlice({
      * @param {Object} action - Redux action containing the new favorite item.
      */
     addFavorite: (state, action) => {
-      // Add the new favorite item at the beginning of the list
+      // Check if already exists to prevent duplicates
+      const exists = state.listFavorites.some(
+        fav => fav.mediaId?.toString() === action.payload.mediaId?.toString()
+      );
+      if (!exists) {
       state.listFavorites = [action.payload, ...state.listFavorites];
+      }
+    },
+
+    /**
+     * Removes multiple favorites by their mediaType.
+     * 
+     * @param {Object} state - Current state.
+     * @param {Object} action - Redux action containing the mediaType to remove.
+     */
+    removeFavoritesByType: (state, action) => {
+      const { mediaType } = action.payload;
+      state.listFavorites = state.listFavorites.filter(
+        favorite => favorite.mediaType !== mediaType
+      );
+    },
+
+    /**
+     * Removes multiple favorites by their IDs.
+     * 
+     * @param {Object} state - Current state.
+     * @param {Object} action - Redux action containing array of mediaIds to remove.
+     */
+    bulkRemoveFavorites: (state, action) => {
+      const { mediaIds } = action.payload;
+      const mediaIdSet = new Set(mediaIds.map(id => id.toString()));
+      state.listFavorites = state.listFavorites.filter(
+        favorite => !mediaIdSet.has(favorite.mediaId?.toString())
+      );
     },
   },
 });
 
 // Export actions for dispatching
-export const { setUser, setListFavorites, addFavorite, removeFavorite } = userSlice.actions;
+export const { 
+  setUser, 
+  setListFavorites, 
+  addFavorite, 
+  removeFavorite,
+  removeFavoritesByType,
+  bulkRemoveFavorites,
+} = userSlice.actions;
 
 // Export the reducer for use in the store
 export default userSlice.reducer;

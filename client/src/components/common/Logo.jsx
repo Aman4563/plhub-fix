@@ -1,26 +1,42 @@
-import { Typography } from "@mui/material";
+import { Typography, Box } from "@mui/material";
+import { Link } from "react-router-dom";
 
 /**
  * Logo Component
- * - Displays a clickable logo that redirects to the home page.
- * - The logo supports a gradient effect for styling.
+ * - Displays a clickable logo that redirects to the home page using React Router.
+ * - Supports optional size variant for different contexts (header vs footer).
  */
-const Logo = () => {
+const Logo = ({ variant = "default" }) => {
+  const sizes = {
+    default: "7rem",
+    small: "5rem",
+    large: "9rem",
+  };
+
   return (
-    <Typography fontWeight="700" fontSize="1.7rem">
-      <a href="/" style={{ textDecoration: "none" }}>
+    <Typography fontWeight="700" fontSize="1.7rem" component="div">
+      <Box
+        component={Link}
+        to="/"
+        sx={{
+          display: "inline-block",
+          textDecoration: "none",
+          transition: "transform 0.2s ease, opacity 0.2s ease",
+          "&:hover": {
+            transform: "scale(1.02)",
+            opacity: 0.9,
+          },
+        }}
+      >
         <img
           src="/logo_v3.svg"
-          alt="Logo"
+          alt="PLhub Logo"
           style={{
-            background: "linear-gradient(45deg, #864d25, #FFD700)", // Gradient effect
-            WebkitBackgroundClip: "text", // Apply gradient to text for WebKit browsers
-            WebkitTextFillColor: "transparent", // Make text transparent to show gradient
-            width: "7rem", // Set logo width
-            height: "auto", // Maintain aspect ratio
+            width: sizes[variant] || sizes.default,
+            height: "auto",
           }}
         />
-      </a>
+      </Box>
     </Typography>
   );
 };

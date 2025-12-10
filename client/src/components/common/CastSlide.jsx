@@ -1,4 +1,5 @@
 import { Box, Typography } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
 import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import tmdbConfigs from "../../api/configs/tmdb.configs";
@@ -17,48 +18,69 @@ const CastSlide = ({ casts }) => {
     <Box
       sx={{
         "& .swiper-slide": {
-          width: { xs: "50%", md: "25%", lg: "20.5%" }, // Responsive slide widths
+          width: { xs: "50%", md: "25%", lg: "20.5%" },
           color: "primary.contrastText",
         },
       }}
     >
       <Swiper
-        spaceBetween={10} // Space between slides
-        slidesPerView={"auto"} // Automatically adjusts the number of slides visible
-        grabCursor={true} // Enables a grab cursor for better user interaction
+        spaceBetween={10}
+        slidesPerView={"auto"}
+        grabCursor={true}
         style={{ width: "100%", height: "max-content" }}
       >
-        {casts.map((cast, index) => (
-          <SwiperSlide key={index}>
-            <Link to={routesGen.person(cast.id)}>
-              <Box
-                sx={{
-                  position: "relative",
-                  paddingTop: "120%", // Maintain aspect ratio for images
-                  color: "text.primary",
-                  ...uiConfigs.style.backgroundImage(
-                    tmdbConfigs.posterPath(cast.profile_path)
-                  ), // Dynamically set the background image
-                }}
-              >
+        {casts.map((cast, index) => {
+          const profileUrl = tmdbConfigs.posterPath(cast.profile_path);
+          const hasImage = !!profileUrl;
+          
+          return (
+            <SwiperSlide key={index}>
+              <Link to={routesGen.person(cast.id)}>
                 <Box
                   sx={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "max-content",
-                    bottom: 0,
-                    padding: "10px",
-                    backgroundColor: "rgba(0,0,0,0.6)", // Add a semi-transparent background for the text
+                    position: "relative",
+                    paddingTop: "120%",
+                    color: "text.primary",
+                    ...uiConfigs.style.backgroundImage(profileUrl),
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  <Typography sx={{ ...uiConfigs.style.typoLines(1, "left") }}>
-                    {cast.name}
-                  </Typography>
+                  {/* Fallback icon for missing profile images */}
+                  {!hasImage && (
+                    <PersonIcon 
+                      sx={{ 
+                        fontSize: 64, 
+                        color: "grey.600",
+                        position: "absolute",
+                        top: "40%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)"
+                      }} 
+                    />
+                  )}
+                  
+                  {/* Cast name overlay */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      width: "100%",
+                      height: "max-content",
+                      bottom: 0,
+                      padding: "10px",
+                      backgroundColor: "rgba(0,0,0,0.6)",
+                    }}
+                  >
+                    <Typography sx={{ ...uiConfigs.style.typoLines(1, "left") }}>
+                      {cast.name}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-            </Link>
-          </SwiperSlide>
-        ))}
+              </Link>
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </Box>
   );

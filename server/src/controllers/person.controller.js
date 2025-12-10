@@ -48,5 +48,63 @@ const personMedias = async (req, res) => {
   }
 };
 
+/**
+ * Fetch combined credits (cast + crew) for a person
+ *
+ * @param {Object} req - Express request object containing route parameters.
+ * @param {Object} res - Express response object to send the result.
+ * @route GET /api/v1/person/:personId/credits
+ * @access Public
+ */
+const personCredits = async (req, res) => {
+  const { personId } = req.params;
+
+  try {
+    const credits = await tmdbApi.personCredits({ personId });
+
+    const sortedCast = (credits.cast || [])
+      .filter(item => item.poster_path)
+      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+      .slice(0, 50);
+
+    const sortedCrew = (credits.crew || [])
+      .filter(item => item.poster_path)
+      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+      .slice(0, 30);
+
+    return responseHandler.ok(res, {
+      cast: sortedCast,
+      crew: sortedCrew,
+    });
+  } catch (error) {
+    console.error(`Error fetching credits for person ID ${personId}:`, error);
+    return responseHandler.error(res);
+  }
+};
+
+/**
+ * Search for people (actors, directors, etc.)
+ *
+ * @param {Object} req - Express request object containing query parameters.
+ * @param {Object} res - Express response object to send the result.
+ * @route GET /api/v1/person/search
+ * @access Public
+ */
+const searchPerson = async (req, res) => {
+  const { query, page = 1 } = req.query;
+
+  if (!query) {
+    return responseHandler.badrequest(res, "Search query is required");
+  }
+
+  try {
+    const response = await tmdbApi.personSearch({ query, page });
+    return responseHandler.ok(res, response);
+  } catch (error) {
+    console.error(`Error searching for person "${query}":`, error);
+    return responseHandler.error(res);
+  }
+};
+
 // Export the controller functions for use in routes
-export default { personDetail, personMedias };
+export default { personDetail, personMedias, personCredits, searchPerson };

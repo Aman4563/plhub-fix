@@ -11,6 +11,31 @@ const router = express.Router({ mergeParams: true });
  */
 
 /**
+ * Search for people (actors, directors, etc.)
+ * Example: `/api/v1/person/search?query=tom&page=1`
+ * 
+ * @route GET /search
+ * @query {string} query - Search term
+ * @query {number} page - Page number (optional)
+ */
+router.get(
+  "/search",
+  personController.searchPerson
+);
+
+/**
+ * Fetch combined credits for a specific person.
+ * Example: `/api/v1/person/:personId/credits`
+ * 
+ * @route GET /:personId/credits
+ * @param {string} personId - Unique identifier of the person
+ */
+router.get(
+  "/:personId/credits",
+  personController.personCredits
+);
+
+/**
  * Fetch all media associated with a specific person.
  * Example: `/api/v1/person/:personId/medias`
  * 

@@ -6,14 +6,15 @@ const uiConfigs = {
   style: {
     /**
      * Vertical Gradient Background Image
-     * - Applies a gradient background that fades vertically.
+     * - Applies a smooth gradient background that fades vertically.
+     * - Uses multiple color stops for a gradual, seamless transition.
      */
     gradientBgImage: {
       dark: {
-        backgroundImage: "linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0))",
+        backgroundImage: "linear-gradient(to top, #000000 0%, rgba(0,0,0,0.95) 10%, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0.25) 75%, rgba(0,0,0,0.1) 90%, transparent 100%)",
       },
       light: {
-        backgroundImage: "linear-gradient(to top, rgba(245,245,245,1), rgba(0,0,0,0))",
+        backgroundImage: "linear-gradient(to top, #f5f5f5 0%, rgba(245,245,245,0.95) 10%, rgba(245,245,245,0.8) 30%, rgba(245,245,245,0.5) 55%, rgba(245,245,245,0.25) 75%, rgba(245,245,245,0.1) 90%, transparent 100%)",
       },
     },
 
@@ -59,6 +60,7 @@ const uiConfigs = {
     /**
      * Background Image Styling
      * - Applies a styled background image with cover and centered positioning.
+     * - Handles empty/null image paths gracefully.
      *
      * @param {string} imgPath - Path to the background image.
      * @returns {Object} - CSS style object.
@@ -67,8 +69,8 @@ const uiConfigs = {
       position: "relative",
       backgroundSize: "cover",
       backgroundPosition: "center",
-      backgroundColor: "darkgrey",
-      backgroundImage: `url(${imgPath})`,
+      backgroundColor: "#1a1a1a",
+      backgroundImage: imgPath ? `url(${imgPath})` : "none",
     }),
   },
 

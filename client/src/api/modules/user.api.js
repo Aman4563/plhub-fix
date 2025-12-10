@@ -12,6 +12,11 @@ const userEndpoints = {
   resetPassword: "user/reset-password", // Endpoint for resetting password
   getInfo: "user/info", // Endpoint for fetching user info
   passwordUpdate: "user/update-password", // Endpoint for updating password
+  logout: "user/logout", // Endpoint for logging out
+  checkUsername: "user/check-username", // Endpoint for checking username availability
+  checkEmail: "user/check-email", // Endpoint for checking email availability
+  verifyEmail: "user/verify-email", // Endpoint for email verification
+  resendVerification: "user/resend-verification", // Endpoint for resending verification email
 };
 
 /**
@@ -50,6 +55,7 @@ const userApi = {
    * @param {string} params.confirmPassword - Confirm password field.
    * @param {string} params.displayName - Display name of the new user.
    * @param {string} params.captchaToken - Captcha token for verification.
+   * @param {boolean} params.acceptedTerms - Whether user accepted terms.
    * @returns {Promise<Object>} - API response or error.
    */
   signup: async ({
@@ -59,6 +65,7 @@ const userApi = {
     confirmPassword,
     displayName,
     captchaToken,
+    acceptedTerms,
   }) => {
     try {
       const response = await publicClient.post(userEndpoints.signup, {
@@ -68,6 +75,7 @@ const userApi = {
         confirmPassword,
         displayName,
         captchaToken,
+        acceptedTerms,
       });
       return { response };
     } catch (err) {
@@ -161,6 +169,87 @@ const userApi = {
         newPassword,
         confirmNewPassword,
       });
+      return { response };
+    } catch (err) {
+      return { err };
+    }
+  },
+
+  /**
+   * Logs out the current user.
+   * Clears server-side session and invalidates refresh token.
+   * Uses publicClient to avoid token refresh attempts during logout.
+   *
+   * @returns {Promise<Object>} - API response or error.
+   */
+  logout: async () => {
+    try {
+      const response = await publicClient.post(userEndpoints.logout);
+      return { response };
+    } catch (err) {
+      return { err };
+    }
+  },
+
+  /**
+   * Checks if a username is available.
+   *
+   * @param {string} username - Username to check.
+   * @returns {Promise<Object>} - API response with availability status.
+   */
+  checkUsername: async (username) => {
+    try {
+      const response = await publicClient.get(
+        `${userEndpoints.checkUsername}/${encodeURIComponent(username)}`
+      );
+      return { response };
+    } catch (err) {
+      return { err };
+    }
+  },
+
+  /**
+   * Checks if an email is available.
+   *
+   * @param {string} email - Email to check.
+   * @returns {Promise<Object>} - API response with availability status.
+   */
+  checkEmail: async (email) => {
+    try {
+      const response = await publicClient.get(
+        `${userEndpoints.checkEmail}/${encodeURIComponent(email)}`
+      );
+      return { response };
+    } catch (err) {
+      return { err };
+    }
+  },
+
+  /**
+   * Verifies user email with token.
+   *
+   * @param {string} token - Email verification token.
+   * @returns {Promise<Object>} - API response or error.
+   */
+  verifyEmail: async (token) => {
+    try {
+      const response = await publicClient.get(
+        `${userEndpoints.verifyEmail}/${token}`
+      );
+      return { response };
+    } catch (err) {
+      return { err };
+    }
+  },
+
+  /**
+   * Resends verification email.
+   *
+   * @returns {Promise<Object>} - API response or error.
+   */
+  resendVerification: async () => {
+    try {
+      const response = await privateClient.post(userEndpoints.resendVerification);
       return { response };
     } catch (err) {
       return { err };

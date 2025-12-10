@@ -1,94 +1,102 @@
-// src/features/appStateSlice.js
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import mediaApi from "../../api/modules/media.api";
 
 /**
  * Async thunk to fetch genres based on media type.
- * - Caches genres in state to avoid redundant API calls.
- *
- * @param {string} mediaType - The type of media (e.g., "movie", "tv").
- * @returns {Object} - Contains the mediaType and the fetched genres.
+ * Caches genres in state to avoid redundant API calls.
  */
 export const fetchGenres = createAsyncThunk(
   "appState/fetchGenres",
   async (mediaType, { getState }) => {
     const { genres } = getState().appState;
 
-    // Return cached genres if available for the given mediaType
-    if (genres[mediaType]) return genres[mediaType];
+    if (genres[mediaType]) {
+      return { mediaType, genres: genres[mediaType] };
+    }
 
-    // Fetch genres from the API
     const response = await mediaApi.getGenres(mediaType);
     return { mediaType, genres: response.response.genres };
   }
 );
 
 /**
- * Async thunk to fetch certifications.
- * - Caches certifications in state to avoid redundant API calls.
- *
- * @returns {Array} - List of certifications (defaulting to US certifications if available).
+ * Async thunk to fetch movie certifications.
+ * Caches certifications in state to avoid redundant API calls.
  */
 export const fetchCertifications = createAsyncThunk(
   "appState/fetchCertifications",
   async (_, { getState }) => {
     const { certifications } = getState().appState;
 
-    // Return cached certifications if already fetched
-    if (certifications) return certifications;
+    if (certifications?.movie) {
+      return { type: "movie", certifications: certifications.movie };
+    }
 
-    // Fetch certifications from the API
     const response = await mediaApi.getCertifications();
-    return response.response.certifications.US || [];
+    return { type: "movie", certifications: response.response.certifications?.US || [] };
   }
 );
 
 /**
- * Redux slice for managing application state.
- * - Handles genres, certifications, and general app state messages.
+ * Async thunk to fetch TV certifications.
+ * Caches certifications in state to avoid redundant API calls.
  */
+export const fetchTvCertifications = createAsyncThunk(
+  "appState/fetchTvCertifications",
+  async (_, { getState }) => {
+    const { certifications } = getState().appState;
+
+    if (certifications?.tv) {
+      return { type: "tv", certifications: certifications.tv };
+    }
+
+    const response = await mediaApi.getTvCertifications();
+    return { type: "tv", certifications: response.response.certifications?.US || [] };
+  }
+);
+
 const appStateSlice = createSlice({
   name: "appState",
   initialState: {
-    appState: "", // Current application state (e.g., loading, success, error)
-    genres: {}, // Stores genres by media type (e.g., { movie: [], tv: [] })
-    certifications: null, // Cached certifications
-    appStateMessage: "", // Message describing the current state
+    appState: "",
+    genres: {},
+    certifications: {
+      movie: null,
+      tv: null,
+    },
+    appStateMessage: "",
   },
   reducers: {
-    /**
-     * Sets a custom application state message.
-     *
-     * @param {Object} state - Current state.
-     * @param {Object} action - Redux action containing the new message.
-     */
     setAppState(state, action) {
       state.appStateMessage = action.payload;
     },
   },
   extraReducers: (builder) => {
     builder
-      /**
-       * Handles successful genre fetching.
-       * - Updates the genres for the specified media type.
-       */
       .addCase(fetchGenres.fulfilled, (state, action) => {
         const { mediaType, genres } = action.payload;
         state.genres[mediaType] = genres;
       })
-      /**
-       * Handles successful certification fetching.
-       * - Updates the certifications in the state.
-       */
+      .addCase(fetchGenres.rejected, (state, action) => {
+        console.error("Failed to fetch genres:", action.error.message);
+      })
       .addCase(fetchCertifications.fulfilled, (state, action) => {
-        state.certifications = action.payload;
+        const { type, certifications } = action.payload;
+        state.certifications[type] = certifications;
+      })
+      .addCase(fetchCertifications.rejected, (state, action) => {
+        console.error("Failed to fetch movie certifications:", action.error.message);
+      })
+      .addCase(fetchTvCertifications.fulfilled, (state, action) => {
+        const { type, certifications } = action.payload;
+        state.certifications[type] = certifications;
+      })
+      .addCase(fetchTvCertifications.rejected, (state, action) => {
+        console.error("Failed to fetch TV certifications:", action.error.message);
       });
   },
 });
 
-// Export actions for dispatching
 export const { setAppState } = appStateSlice.actions;
 
-// Export the reducer for integration in the store
 export default appStateSlice.reducer;

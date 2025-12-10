@@ -15,21 +15,44 @@ const mediaCategory = {
   top_rated: "top_rated", // Top-rated content
 };
 
+// Base URL for TMDB images
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
+
 /**
  * Generates a full URL for a backdrop image.
+ * Returns empty string if no image endpoint provided (component handles fallback).
  *
  * @param {string} imgEndpoint - The image endpoint returned by the TMDB API.
- * @returns {string} - Full URL for the backdrop image.
+ * @returns {string} - Full URL for the backdrop image or empty string.
  */
-const backdropPath = (imgEndpoint) => `https://image.tmdb.org/t/p/original${imgEndpoint}`;
+const backdropPath = (imgEndpoint) => {
+  if (!imgEndpoint || imgEndpoint === "null" || imgEndpoint === "undefined") {
+    return "";
+  }
+  // Handle case where full URL is already provided
+  if (imgEndpoint.startsWith("http")) {
+    return imgEndpoint;
+  }
+  return `${TMDB_IMAGE_BASE}/original${imgEndpoint}`;
+};
 
 /**
  * Generates a full URL for a poster image.
+ * Returns empty string if no image endpoint provided (component handles fallback).
  *
  * @param {string} imgEndpoint - The image endpoint returned by the TMDB API.
- * @returns {string} - Full URL for the poster image.
+ * @returns {string} - Full URL for the poster image or empty string.
  */
-const posterPath = (imgEndpoint) => `https://image.tmdb.org/t/p/w500${imgEndpoint}`;
+const posterPath = (imgEndpoint) => {
+  if (!imgEndpoint || imgEndpoint === "null" || imgEndpoint === "undefined") {
+    return "";
+  }
+  // Handle case where full URL is already provided
+  if (imgEndpoint.startsWith("http")) {
+    return imgEndpoint;
+  }
+  return `${TMDB_IMAGE_BASE}/w500${imgEndpoint}`;
+};
 
 /**
  * Generates a full YouTube embed URL for a video.

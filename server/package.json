@@ -9,17 +9,24 @@
     "start": "nodemon index.js"
   },
   "dependencies": {
+    "accesscontrol": "^2.2.1",
     "axios": "^1.2.0",
+    "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^8.2.1",
     "express-validator": "^6.15.0",
     "google-auth-library": "^9.15.0",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.8.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.7.5",
-    "nodemailer": "^6.9.16",
+    "nanoid": "^5.1.6",
+    "nodemailer": "^6.10.1",
     "nodemon": "^2.0.20",
-    "squid": "^0.5.2"
+    "squid": "^0.5.2",
+    "winston": "^3.18.3"
   }
 }

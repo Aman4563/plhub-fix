@@ -1,3 +1,8 @@
+/**
+ * Menu Configuration
+ * Navigation options for the application
+ */
+
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import SlideshowOutlinedIcon from "@mui/icons-material/SlideshowOutlined";
 import LiveTvOutlinedIcon from "@mui/icons-material/LiveTvOutlined";
@@ -6,10 +11,10 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
 import LockResetOutlinedIcon from "@mui/icons-material/LockResetOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay";
 
 /**
- * Main Menu Configuration
- * - Represents primary navigation options available to all users.
+ * Main Menu - Available to all users
  */
 const main = [
   {
@@ -45,10 +50,15 @@ const main = [
 ];
 
 /**
- * User Menu Configuration
- * - Represents additional navigation options available to authenticated users.
+ * User Menu - Available to authenticated users
  */
 const user = [
+  {
+    display: "Watchlist",
+    path: "/watchlist",
+    icon: <PlaylistPlayIcon />,
+    state: "watchlist",
+  },
   {
     display: "Favorites",
     path: "/favorites",
@@ -69,9 +79,6 @@ const user = [
   },
 ];
 
-/**
- * Consolidated Menu Configurations
- */
 const menuConfigs = { main, user };
 
 export default menuConfigs;

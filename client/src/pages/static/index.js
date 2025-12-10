@@ -1,0 +1,11 @@
+export { default as PrivacyPolicyPage } from "./PrivacyPolicyPage";
+export { default as TermsOfServicePage } from "./TermsOfServicePage";
+export { default as DMCAPage } from "./DMCAPage";
+export { default as CookiePolicyPage } from "./CookiePolicyPage";
+export { default as HelpCenterPage } from "./HelpCenterPage";
+export { default as ContactPage } from "./ContactPage";
+export { default as FAQPage } from "./FAQPage";
+export { default as ReportIssuePage } from "./ReportIssuePage";
+export { default as AboutPage } from "./AboutPage";
+export { default as CareersPage } from "./CareersPage";
+export { default as PressPage } from "./PressPage";

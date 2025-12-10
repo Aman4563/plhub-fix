@@ -30,6 +30,7 @@ const CustomScrollbar = ({ children }) => {
     <div
       style={{
         overflowY: "auto",
+        overflowX: "hidden",
         height: "100%",
       }}
       className={isScrolled ? "scrolling" : ""}
