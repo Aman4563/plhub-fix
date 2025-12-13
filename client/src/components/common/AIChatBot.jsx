@@ -758,18 +758,42 @@ const QuickPrompts = memo(({ onPromptClick, t, theme }) => {
   ], [t]);
 
   return (
-    <Box sx={{ px: 2, pb: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+    <Box 
+      sx={{ 
+        px: 2, 
+        pb: 1.5, 
+        display: "flex", 
+        flexWrap: "wrap", 
+        gap: 0.75,
+        overflowX: "auto",
+        // Hide scrollbar
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
+      }}
+    >
       {prompts.map((prompt, idx) => (
         <Chip
           key={idx}
+          component={motion.div}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           label={prompt}
           size="small"
           onClick={() => onPromptClick(prompt)}
           sx={{
             cursor: "pointer",
-            bgcolor: alpha(theme.palette.primary.main, 0.1),
-            "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.2) },
+            bgcolor: alpha(theme.palette.primary.main, 0.08),
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+            "&:hover": { 
+              bgcolor: alpha(theme.palette.primary.main, 0.15),
+              borderColor: theme.palette.primary.main,
+            },
             fontSize: "0.75rem",
+            fontWeight: 500,
+            transition: "all 0.2s ease",
           }}
           tabIndex={0}
           onKeyDown={(e) => {
@@ -1042,29 +1066,40 @@ const AIChatBotContent = () => {
     // Stop any streaming
     stopStreaming();
     
-    // Clear local state
-    clearLocalMessages(chatHistoryId);
+    const oldChatHistoryId = chatHistoryId;
     
-    // Set welcome message
-    queryClient.setQueryData(CHAT_KEYS.messages(null), [{
-      id: "welcome",
-      role: "assistant",
-      content: welcomeMessage,
-      mediaRecommendations: [],
-      status: "sent",
-      timestamp: new Date().toISOString(),
-    }]);
+    // Clear local state for current session
+    if (oldChatHistoryId) {
+      clearLocalMessages(oldChatHistoryId);
+    }
+    
+    // First set chatHistoryId to null
+    setChatHistoryId(null);
+    
+    // Then set welcome message for the null session
+    // Use setTimeout to ensure state update has propagated
+    setTimeout(() => {
+      queryClient.setQueryData(CHAT_KEYS.messages(null), [{
+        id: "welcome",
+        role: "assistant",
+        content: welcomeMessage,
+        mediaRecommendations: [],
+        status: "sent",
+        timestamp: new Date().toISOString(),
+      }]);
+    }, 0);
 
     // Archive old session on backend if exists
-    if (chatHistoryId) {
+    if (oldChatHistoryId) {
       try {
-        await clearSessionMutation.mutateAsync(chatHistoryId);
+        await clearSessionMutation.mutateAsync(oldChatHistoryId);
       } catch (error) {
         console.error("Error archiving old chat:", error);
       }
     }
-
-    setChatHistoryId(null);
+    
+    // Invalidate sessions list to refresh
+    queryClient.invalidateQueries({ queryKey: CHAT_KEYS.sessions() });
   }, [chatHistoryId, clearLocalMessages, clearSessionMutation, setChatHistoryId, queryClient, welcomeMessage, stopStreaming]);
 
   // History menu handlers
@@ -1078,9 +1113,14 @@ const AIChatBotContent = () => {
   }, []);
 
   const handleSessionSelect = useCallback((session) => {
+    // Invalidate the messages cache for the new session to force a refetch
+    queryClient.invalidateQueries({ 
+      queryKey: CHAT_KEYS.messages(session.id),
+      exact: true 
+    });
     setChatHistoryId(session.id);
     handleHistoryClose();
-  }, [setChatHistoryId, handleHistoryClose]);
+  }, [setChatHistoryId, handleHistoryClose, queryClient]);
 
   const handleSessionHover = useCallback((session) => {
     prefetchSession(session.id);
@@ -1249,7 +1289,18 @@ const AIChatBotContent = () => {
                 anchorEl={historyMenuAnchor}
                 open={Boolean(historyMenuAnchor)}
                 onClose={handleHistoryClose}
-                PaperProps={{ sx: { maxHeight: 300, width: 280 } }}
+                PaperProps={{ 
+                  sx: { 
+                    maxHeight: 300, 
+                    width: 280,
+                    // Hide scrollbar but keep scrolling functional
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                    "&::-webkit-scrollbar": {
+                      display: "none",
+                    },
+                  } 
+                }}
               >
                 {chatSessions.length === 0 ? (
                   <MenuItem disabled>
@@ -1285,12 +1336,35 @@ const AIChatBotContent = () => {
                   background: theme.palette.mode === "dark"
                     ? `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.5)} 0%, ${theme.palette.background.default} 100%)`
                     : theme.palette.background.default,
+                  // Hide scrollbar but keep scrolling functional
+                  scrollbarWidth: "none", // Firefox
+                  msOverflowStyle: "none", // IE and Edge
+                  "&::-webkit-scrollbar": {
+                    display: "none", // Chrome, Safari, Opera
+                  },
                 }}
                 role="log"
                 aria-label={t("chatbot.aria.messageList")}
                 aria-live="polite"
               >
-                {messagesWithInitial.map((message) => (
+                {/* Loading state when fetching messages */}
+                {isLoadingMessages && chatHistoryId && (
+                  <Box 
+                    sx={{ 
+                      display: "flex", 
+                      justifyContent: "center", 
+                      alignItems: "center", 
+                      py: 4 
+                    }}
+                  >
+                    <CircularProgress size={24} />
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                      Loading messages...
+                    </Typography>
+                  </Box>
+                )}
+
+                {!isLoadingMessages && messagesWithInitial.map((message) => (
                   <MessageItem
                     key={message.id}
                     message={message}
@@ -1329,9 +1403,10 @@ const AIChatBotContent = () => {
                 onSubmit={handleFormSubmit}
                 sx={{ 
                   p: 2, 
-                  pt: 1, 
+                  pt: 1.5, 
                   borderTop: `1px solid ${theme.palette.divider}`, 
-                  bgcolor: theme.palette.background.paper 
+                  bgcolor: theme.palette.background.paper,
+                  backdropFilter: "blur(10px)",
                 }}
               >
                 <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
@@ -1344,7 +1419,7 @@ const AIChatBotContent = () => {
                     value={localInput}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    disabled={isSending}
+                    disabled={isSending || isLoadingMessages}
                     size="small"
                     autoComplete="off"
                     inputProps={{
@@ -1355,18 +1430,38 @@ const AIChatBotContent = () => {
                       "& .MuiOutlinedInput-root": {
                         borderRadius: 3,
                         bgcolor: alpha(theme.palette.background.default, 0.5),
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: alpha(theme.palette.background.default, 0.7),
+                        },
+                        "&.Mui-focused": {
+                          bgcolor: theme.palette.background.default,
+                          boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                        },
+                      },
+                      // Hide scrollbar in textarea but keep scrolling functional
+                      "& textarea": {
+                        scrollbarWidth: "none", // Firefox
+                        msOverflowStyle: "none", // IE and Edge
+                        "&::-webkit-scrollbar": {
+                          display: "none", // Chrome, Safari, Opera
+                        },
                       },
                     }}
                   />
                   {isStreaming ? (
                     <Tooltip title={t("chatbot.stopGenerating")}>
                       <IconButton
+                        component={motion.button}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={stopStreaming}
                         aria-label={t("chatbot.aria.stopButton")}
                         sx={{
                           bgcolor: theme.palette.error.main,
                           color: "#fff",
                           "&:hover": { bgcolor: theme.palette.error.dark },
+                          transition: "background-color 0.2s ease",
                         }}
                       >
                         <StopIcon />
@@ -1376,8 +1471,11 @@ const AIChatBotContent = () => {
                     <Tooltip title={t("chatbot.aria.sendButton")}>
                       <span>
                         <IconButton
+                          component={motion.button}
+                          whileHover={{ scale: !localInput.trim() || isSending ? 1 : 1.1 }}
+                          whileTap={{ scale: !localInput.trim() || isSending ? 1 : 0.9 }}
                           type="submit"
-                          disabled={!localInput.trim() || isSending}
+                          disabled={!localInput.trim() || isSending || isLoadingMessages}
                           aria-label={t("chatbot.aria.sendButton")}
                           sx={{
                             bgcolor: theme.palette.primary.main,
@@ -1387,6 +1485,7 @@ const AIChatBotContent = () => {
                               bgcolor: theme.palette.action.disabledBackground,
                               color: theme.palette.action.disabled,
                             },
+                            transition: "background-color 0.2s ease",
                           }}
                         >
                           <SendIcon />

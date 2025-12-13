@@ -66,7 +66,7 @@ const chatbotConfigs = {
   welcomeMessageKey: "chatbot.welcome",
 
   // Default welcome message (fallback)
-  defaultWelcomeMessage: `Hey there! 👋 I'm your **AI movie & TV assistant** with superpowers!
+  defaultWelcomeMessage: `Hey there! 👋 I'm your **PLHub movie & TV assistant** with superpowers!
 
 ### What I can do:
 • 🔍 **Search** movies and TV shows
@@ -79,7 +79,7 @@ Just ask naturally - like "Add Inception to my watchlist" or "Write a review for
 
   // Accessibility
   accessibility: {
-    chatWindowLabel: "AI Movie Assistant Chat Window",
+    chatWindowLabel: "PLHub Movie Assistant Chat Window",
     messageListLabel: "Chat messages",
     inputLabel: "Type your message",
     sendButtonLabel: "Send message",

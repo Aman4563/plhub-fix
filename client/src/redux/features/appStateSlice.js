@@ -14,8 +14,8 @@ export const fetchGenres = createAsyncThunk(
       return { mediaType, genres: genres[mediaType] };
     }
 
-    const response = await mediaApi.getGenres(mediaType);
-    return { mediaType, genres: response.response.genres };
+    const response = await mediaApi.getGenres({ mediaType });
+    return { mediaType, genres: response.response?.genres || [] };
   }
 );
 

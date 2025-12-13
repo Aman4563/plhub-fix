@@ -9,6 +9,33 @@ import securityConfig from "../config/security.config.js";
 import logger from "../config/logger.config.js";
 
 /**
+ * Routes that should have relaxed rate limiting
+ * These are typically:
+ * - Cached routes (genres, certifications, trending, popular)
+ * - Read-only public data
+ * - Static content that doesn't change frequently
+ */
+const CACHEABLE_ROUTES = [
+  "/genres",
+  "/certifications",
+  "/watch-providers",
+  "/trending",
+  "/popular",
+  "/top_rated",
+  "/now_playing",
+  "/on_the_air",
+  "/upcoming",
+  "/airing_today",
+];
+
+/**
+ * Check if a route is cacheable and should skip strict rate limiting
+ */
+const isCacheableRoute = (path) => {
+  return CACHEABLE_ROUTES.some(route => path.includes(route));
+};
+
+/**
  * General rate limiter for all routes
  */
 export const generalLimiter = rateLimit({
@@ -41,12 +68,19 @@ export const authLimiter = rateLimit({
 
 /**
  * API rate limiter for general API endpoints
+ * Skips rate limiting for cacheable routes (they have their own caching layer)
  */
 export const apiLimiter = rateLimit({
   ...securityConfig.rateLimit.api,
   handler: (req, res) => {
     logger.warn(`API rate limit exceeded for IP: ${req.ip}`);
     res.status(429).json(securityConfig.rateLimit.api.message);
+  },
+  skip: (req) => {
+    // Skip strict rate limiting for cacheable routes
+    // These routes already have caching middleware and don't need aggressive rate limiting
+    const shouldSkip = isCacheableRoute(req.path);
+    return shouldSkip;
   },
 });
 

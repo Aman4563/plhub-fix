@@ -199,6 +199,25 @@ const deleteFromCache = async (pattern) => {
 };
 
 /**
+ * Routes that should NEVER be cached (user-specific data)
+ * These endpoints return different data based on the authenticated user
+ */
+const USER_SPECIFIC_ROUTES = [
+  "/api/v1/user",
+  "/api/v1/reviews",
+  "/api/v1/favorites",
+  "/api/v1/watchlist",
+  "/api/v1/chatbot/history",
+];
+
+/**
+ * Check if route is user-specific (should not be cached)
+ */
+const isUserSpecificRoute = (path) => {
+  return USER_SPECIFIC_ROUTES.some(route => path.includes(route));
+};
+
+/**
  * Cache middleware factory
  */
 const cacheMiddleware = (configKey = "default") => {
@@ -210,8 +229,9 @@ const cacheMiddleware = (configKey = "default") => {
       return next();
     }
 
-    // Skip caching for authenticated requests (user-specific data)
-    if (req.headers.authorization || req.cookies?.accessToken) {
+    // Skip caching ONLY for user-specific routes (not all authenticated requests)
+    // Public content (trending, popular, genres, etc.) should be cached for everyone
+    if (isUserSpecificRoute(req.originalUrl)) {
       return next();
     }
 
@@ -222,7 +242,7 @@ const cacheMiddleware = (configKey = "default") => {
       const cachedData = await getFromCache(cacheKey);
 
       if (cachedData) {
-        logger.debug("Cache hit", { key: cacheKey });
+        logger.info("Cache hit", { key: cacheKey, ttl: config.ttl });
         return res.json(cachedData);
       }
 
@@ -234,7 +254,7 @@ const cacheMiddleware = (configKey = "default") => {
         // Only cache successful responses
         if (res.statusCode >= 200 && res.statusCode < 300) {
           setToCache(cacheKey, data, config.ttl);
-          logger.debug("Cache set", { key: cacheKey, ttl: config.ttl });
+          logger.info("Cache set", { key: cacheKey, ttl: config.ttl });
         }
         return originalJson(data);
       };

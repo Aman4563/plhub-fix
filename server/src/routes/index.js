@@ -22,10 +22,11 @@ import certificationController from "../controllers/certification.controller.js"
 import filterController from "../controllers/filter.controller.js";
 import watchProviderController from "../controllers/watchProvider.controller.js";
 import { apiLimiter } from "../middlewares/rateLimiter.middleware.js";
+import { cacheMiddleware } from "../middlewares/cache.middleware.js";
 
 const router = express.Router();
 
-// Apply API rate limiting to all routes
+// Apply API rate limiting to all routes (with skip for cacheable routes)
 router.use(apiLimiter);
 
 /**
@@ -84,15 +85,15 @@ router.use("/careers", jobApplicationRoute);
 // AI Chatbot routes
 router.use("/chatbot", chatbotRoute);
 
-// Genre routes
-router.get("/genres/:mediaType", genreController.getGenres);
+// Genre routes (cached for 24 hours - rarely changes)
+router.get("/genres/:mediaType", cacheMiddleware("genres"), genreController.getGenres);
 
-// Certification routes
-router.get("/certifications/movie", certificationController.getMovieCertifications);
-router.get("/certifications/tv", certificationController.getTvCertifications);
+// Certification routes (cached for 24 hours - rarely changes)
+router.get("/certifications/movie", cacheMiddleware("certifications"), certificationController.getMovieCertifications);
+router.get("/certifications/tv", cacheMiddleware("certifications"), certificationController.getTvCertifications);
 
-// Watch provider routes
-router.get("/watch-providers/:mediaType", watchProviderController.getWatchProvidersList);
+// Watch provider routes (cached for 1 hour)
+router.get("/watch-providers/:mediaType", cacheMiddleware("watchProviders"), watchProviderController.getWatchProvidersList);
 
 // Filter routes (advanced search)
 router.get("/filter/:mediaType", filterController.filterMedia);

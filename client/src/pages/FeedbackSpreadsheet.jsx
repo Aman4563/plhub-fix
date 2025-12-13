@@ -63,73 +63,113 @@
 
 // export default FeedbackSpreadsheet;
 
-import React, { useState, useEffect } from 'react';
-import styled, { keyframes } from 'styled-components';
+import React, { useState, useCallback } from 'react';
+import { Box, Container, Typography, Paper, Divider, useTheme, alpha } from '@mui/material';
+import { motion } from 'framer-motion';
 import FeedbackForm from '../components/common/FeedbackForm';
-import feedbackApi from '../api/modules/feedback.api';
 import FeedbackList from '../components/common/FeedbackList';
-
-// Define animation keyframes
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-// Styled components
-const Container = styled.div`
-  max-width: 800px;
-  margin: 50px auto; /* Add margin for centering and to create space between the top and the feedback list */
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  animation: ${fadeIn} 0.5s ease; /* Apply fadeIn animation */
-`;
+import { Feedback as FeedbackIcon } from '@mui/icons-material';
 
 const FeedbackSpreadsheet = () => {
-    const [feedbackData, setFeedbackData] = useState([]);
+    const theme = useTheme();
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    useEffect(() => {
-        fetchFeedbackData();
+    // Callback to refresh the feedback list after submission
+    const handleFeedbackSubmitted = useCallback(() => {
+        setRefreshKey(prev => prev + 1);
     }, []);
 
-    const fetchFeedbackData = async () => {
-        try {
-            const { response, err } = await feedbackApi.fetchFeedback();
-            if (err) {
-                console.error('Error fetching feedback data:', err);
-            } else {
-                setFeedbackData(response.data);
-            }
-        } catch (error) {
-            console.error('Error fetching feedback data:', error);
-        }
-    };
-
-    const handleFeedbackSubmit = async (feedback) => {
-        try {
-            const { response, err } = await feedbackApi.submitFeedback(feedback);
-            if (err) {
-                console.error('Error submitting feedback:', err);
-            } else {
-                console.log('Feedback submitted successfully:', response);
-                setFeedbackData(prevData => [...prevData, feedback]);
-            }
-        } catch (error) {
-            console.error('Error submitting feedback:', error);
-        }
-    };
-
     return (
-        <Container>
-            <FeedbackList feedbackData={feedbackData} style={{ marginTop: '20px' }} /> {/* Add margin-top for spacing */}
-            <FeedbackForm onSubmit={handleFeedbackSubmit} />
-        </Container>
+        <Box
+            sx={{
+                minHeight: "100vh",
+                py: { xs: 4, md: 6 },
+                background: theme.palette.mode === "dark"
+                    ? `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.3)} 0%, ${theme.palette.background.default} 100%)`
+                    : theme.palette.background.default,
+            }}
+        >
+            <Container maxWidth="md">
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    {/* Header Section */}
+                    <Box sx={{ textAlign: "center", mb: 4 }}>
+                        <Box
+                            sx={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: 64,
+                                height: 64,
+                                borderRadius: "50%",
+                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                mb: 2,
+                            }}
+                        >
+                            <FeedbackIcon sx={{ fontSize: 32, color: theme.palette.primary.main }} />
+                        </Box>
+                        <Typography variant="h4" fontWeight={700} gutterBottom>
+                            Feedback & Requests
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 500, mx: "auto" }}>
+                            Share your thoughts, suggestions, or request movies and TV shows you'd like to see on PLHub.
+                        </Typography>
+                    </Box>
+
+                    {/* Feedback Form Section */}
+                    <Paper
+                        component={motion.div}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        elevation={0}
+                        sx={{
+                            p: { xs: 2, md: 3 },
+                            mb: 4,
+                            borderRadius: 3,
+                            bgcolor: alpha(theme.palette.background.paper, 0.8),
+                            border: `1px solid ${theme.palette.divider}`,
+                        }}
+                    >
+                        <Typography variant="h6" fontWeight={600} gutterBottom>
+                            Submit Your Feedback
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Your feedback helps us improve PLHub. Let us know what you think!
+                        </Typography>
+                        <FeedbackForm onSuccess={handleFeedbackSubmitted} />
+                    </Paper>
+
+                    <Divider sx={{ my: 4 }} />
+
+                    {/* Feedback List Section */}
+                    <Paper
+                        component={motion.div}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        elevation={0}
+                        sx={{
+                            p: { xs: 2, md: 3 },
+                            borderRadius: 3,
+                            bgcolor: alpha(theme.palette.background.paper, 0.8),
+                            border: `1px solid ${theme.palette.divider}`,
+                        }}
+                    >
+                        <Typography variant="h6" fontWeight={600} gutterBottom>
+                            Community Feedback
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                            See what others are saying about PLHub.
+                        </Typography>
+                        <FeedbackList key={refreshKey} />
+                    </Paper>
+                </motion.div>
+            </Container>
+        </Box>
     );
 };
 

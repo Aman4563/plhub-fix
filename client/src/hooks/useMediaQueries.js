@@ -92,7 +92,7 @@ export const useGenres = (mediaType, options = {}) => {
   return useQuery({
     queryKey: mediaQueryKeys.genres(mediaType),
     queryFn: async () => {
-      const { response, err } = await mediaApi.getGenres(mediaType);
+      const { response, err } = await mediaApi.getGenres({ mediaType });
       if (err) throw new Error(err.message || 'Failed to fetch genres');
       return response;
     },

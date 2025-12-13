@@ -34,24 +34,25 @@ export const securityConfig = {
   },
 
   // Rate Limiting Configuration
+  // Higher limits in development for hot reloading and testing
   rateLimit: {
     general: {
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 100, // 100 requests per window
+      max: process.env.NODE_ENV === "development" ? 500 : 100, // Higher in dev
       message: { status: 429, message: "Too many requests, please try again later." },
       standardHeaders: true,
       legacyHeaders: false,
     },
     auth: {
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 5, // 5 login attempts per window
+      max: process.env.NODE_ENV === "development" ? 20 : 5, // Higher in dev
       message: { status: 429, message: "Too many login attempts, please try again later." },
       standardHeaders: true,
       legacyHeaders: false,
     },
     api: {
       windowMs: 1 * 60 * 1000, // 1 minute
-      max: 60, // 60 requests per minute
+      max: process.env.NODE_ENV === "development" ? 300 : 60, // 300/min in dev, 60/min in prod
       message: { status: 429, message: "API rate limit exceeded." },
       standardHeaders: true,
       legacyHeaders: false,

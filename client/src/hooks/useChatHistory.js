@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import chatbotApi from "../api/modules/chatbot.api";
 import chatbotConfigs from "../configs/chatbot.configs";
 
@@ -71,6 +71,7 @@ export function useChatMessages(chatHistoryId, onChatHistoryIdChange) {
   const queryClient = useQueryClient();
   const lastSentRef = useRef(0);
   const abortControllerRef = useRef(null);
+  const previousChatHistoryIdRef = useRef(chatHistoryId);
   
   // Streaming state
   const [isStreaming, setIsStreaming] = useState(false);
@@ -81,23 +82,56 @@ export function useChatMessages(chatHistoryId, onChatHistoryIdChange) {
     queryKey: CHAT_KEYS.messages(chatHistoryId),
     queryFn: async () => {
       if (!chatHistoryId) return [];
-      const { response, err } = await chatbotApi.getChatSession({ chatHistoryId });
-      if (err) throw new Error(err.message);
       
-      // Transform messages to consistent format
-      return (response?.messages || []).map((msg, idx) => ({
-        id: msg.id || `msg-${idx}-${Date.now()}`,
-        role: msg.role === "model" ? "assistant" : msg.role,
-        content: msg.content,
-        mediaRecommendations: msg.mediaRecommendations || [],
-        status: "sent",
-        timestamp: msg.timestamp || new Date().toISOString(),
-      }));
+      try {
+        const { response, err } = await chatbotApi.getChatSession({ chatHistoryId });
+        
+        if (err) {
+          // Session not found or expired - clear the invalid ID
+          console.warn("Chat session not found, clearing chatHistoryId:", chatHistoryId);
+          onChatHistoryIdChange?.(null);
+          return [];
+        }
+        
+        // Transform messages to consistent format
+        return (response?.messages || []).map((msg, idx) => ({
+          id: msg.id || `msg-${idx}-${Date.now()}`,
+          role: msg.role === "model" ? "assistant" : msg.role,
+          content: msg.content,
+          mediaRecommendations: msg.mediaRecommendations || [],
+          status: "sent",
+          timestamp: msg.timestamp || new Date().toISOString(),
+        }));
+      } catch (error) {
+        console.error("Error fetching chat session:", error);
+        // Clear invalid session ID
+        onChatHistoryIdChange?.(null);
+        return [];
+      }
     },
     enabled: !!chatHistoryId,
-    staleTime: STALE_TIME,
+    staleTime: 0, // Always refetch when chatHistoryId changes
+    gcTime: STALE_TIME, // Keep in cache for this duration
     refetchOnWindowFocus: false,
+    retry: 1, // Only retry once for session fetch
   });
+
+  // Handle chatHistoryId change - invalidate old cache and refetch
+  useEffect(() => {
+    if (chatHistoryId !== previousChatHistoryIdRef.current) {
+      const oldId = previousChatHistoryIdRef.current;
+      previousChatHistoryIdRef.current = chatHistoryId;
+      
+      // If switching to a different session, ensure fresh data
+      if (chatHistoryId && oldId !== chatHistoryId) {
+        // Invalidate and refetch the new session's messages
+        queryClient.invalidateQueries({ 
+          queryKey: CHAT_KEYS.messages(chatHistoryId),
+          exact: true 
+        });
+      }
+    }
+  }, [chatHistoryId, queryClient]);
 
   // Stop streaming
   const stopStreaming = useCallback(() => {
