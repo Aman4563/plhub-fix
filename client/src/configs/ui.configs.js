@@ -52,7 +52,7 @@ const uiConfigs = {
      * - Applies consistent styling for the main content area.
      */
     mainContent: {
-      maxWidth: "1366px",
+      maxWidth: "1600px",
       margin: "auto",
       padding: 2,
     },
@@ -83,7 +83,7 @@ const uiConfigs = {
     /**
      * Maximum Width for Main Content
      */
-    contentMaxWidth: "1366px",
+    contentMaxWidth: "1600px",
   },
 };
 

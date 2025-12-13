@@ -19,19 +19,19 @@ const Container = ({ header, viewAllPath, children }) => {
   return (
     <Box
       sx={{
-        marginTop: "5rem",
+        marginTop: "1.5rem",
         marginX: "auto",
         color: "text.primary",
         overflowX: "clip",
       }}
     >
-      <Stack spacing={4}>
+      <Stack spacing={2}>
         {header && (
           <Box
             sx={{
               position: "relative",
-              paddingX: { xs: "20px", md: 0 },
-              maxWidth: "1366px",
+              paddingX: { xs: "20px", md: "20px" },
+              maxWidth: "1600px",
               marginX: "auto",
               width: "100%",
             }}
@@ -108,8 +108,8 @@ const Container = ({ header, viewAllPath, children }) => {
         {/* Children wrapper with same centering as header */}
         <Box
           sx={{
-            paddingX: { xs: "20px", md: 0 },
-            maxWidth: "1366px",
+            paddingX: { xs: "20px", md: "20px" },
+            maxWidth: "1600px",
             marginX: "auto",
             width: "100%",
           }}

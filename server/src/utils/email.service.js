@@ -4,7 +4,7 @@
  */
 
 import nodemailer from "nodemailer";
-import logger from "./logger.js";
+import logger from "../config/logger.config.js";
 
 // Email configuration
 const EMAIL_USER = process.env.EMAIL_USER;

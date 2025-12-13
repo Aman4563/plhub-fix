@@ -16,6 +16,7 @@ import newsletterRoute from "./newsletter.route.js";
 import contactRoute from "./contact.route.js";
 import jobApplicationRoute from "./job.application.route.js";
 import adminRoute from "./admin.route.js";
+import chatbotRoute from "./chatbot.route.js";
 import genreController from "../controllers/genre.controller.js";
 import certificationController from "../controllers/certification.controller.js";
 import filterController from "../controllers/filter.controller.js";
@@ -79,6 +80,9 @@ router.use("/contact", contactRoute);
 
 // Careers/Job Application routes
 router.use("/careers", jobApplicationRoute);
+
+// AI Chatbot routes
+router.use("/chatbot", chatbotRoute);
 
 // Genre routes
 router.get("/genres/:mediaType", genreController.getGenres);

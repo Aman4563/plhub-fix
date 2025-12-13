@@ -325,7 +325,7 @@ const Footer = () => {
         whileInView="visible"
         viewport={{ once: true }}
         sx={{
-          maxWidth: "1400px",
+          maxWidth: "1600px",
           mx: "auto",
           px: { xs: 2, sm: 4, md: 6 },
           py: { xs: 4, md: 6 },
@@ -747,7 +747,7 @@ const Footer = () => {
           justifyContent="space-between"
           alignItems="center"
           spacing={2}
-          sx={{ maxWidth: "1400px", mx: "auto" }}
+          sx={{ maxWidth: "1600px", mx: "auto" }}
         >
           <Typography
             variant="body2"

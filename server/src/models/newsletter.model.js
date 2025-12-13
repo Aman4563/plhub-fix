@@ -50,7 +50,7 @@ const newsletterSchema = new mongoose.Schema(
 );
 
 // Indexes
-newsletterSchema.index({ email: 1 });
+// Note: email already has index via `unique: true`
 newsletterSchema.index({ isActive: 1 });
 newsletterSchema.index({ subscribedAt: -1 });
 

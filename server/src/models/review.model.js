@@ -83,6 +83,12 @@ const reviewSchema = new Schema(
       type: String,
       maxlength: 500,
     },
+    // Vector embedding for RAG (768 dimensions for text-embedding-004)
+    embedding: {
+      type: [Number],
+      default: [],
+      select: false, // Don't include in regular queries
+    },
   },
   modelOptions
 );

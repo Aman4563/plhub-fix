@@ -551,7 +551,8 @@ const signin = async (req, res) => {
 
     logger.info("User logged in successfully", { userId: user.id, username });
 
-    responseHandler.ok(res, {
+    // Prepare response with email verification warning if not verified
+    const responseData = {
       token: accessToken,
       refreshToken,
       ...user._doc,
@@ -559,7 +560,14 @@ const signin = async (req, res) => {
       password: undefined,
       failedLoginAttempts: undefined,
       lockUntil: undefined,
-    });
+    };
+
+    // Add warning if email is not verified
+    if (!user.isEmailVerified) {
+      responseData.emailVerificationWarning = "Please verify your email address to access all features.";
+    }
+
+    responseHandler.ok(res, responseData);
   } catch (error) {
     logger.error("Signin error", { error: error.message, stack: error.stack });
     responseHandler.error(res);

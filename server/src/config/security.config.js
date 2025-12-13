@@ -11,14 +11,16 @@ export const securityConfig = {
     cookieOptions: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      // Use 'lax' for OAuth compatibility (strict blocks cross-site requests from OAuth redirects)
+      sameSite: "lax",
       path: "/",
       maxAge: 15 * 60 * 1000, // 15 minutes for access token
     },
     refreshCookieOptions: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      // Use 'lax' for OAuth compatibility
+      sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for refresh token
     },
@@ -56,13 +58,9 @@ export const securityConfig = {
     },
   },
 
-  // CORS Configuration
+  // CORS Configuration - Uses environment variable for frontend URL
   cors: {
-    allowedOrigins: [
-      "https://plhub-frontend-git-advancefeatur-85221b-amans-projects-62ecaac6.vercel.app",
-      "http://localhost:3000",
-      "http://localhost:3001",
-    ],
+    // allowedOrigins is now dynamically built in index.js using FRONTEND_URL env var
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
     credentials: true,

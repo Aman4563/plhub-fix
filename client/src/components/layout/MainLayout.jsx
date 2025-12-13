@@ -11,10 +11,11 @@ import BackToTop from "../common/BackToTop";
 import SkipLink from "../common/SkipLink";
 import CookieConsent from "../common/CookieConsent";
 import CustomScrollbar from "../CustomScrollbar";
+import AIChatBot from "../common/AIChatBot";
 
 import userApi from "../../api/modules/user.api";
 import favoriteApi from "../../api/modules/favorite.api";
-import { setListFavorites, setUser } from "../../redux/features/userSlice";
+import { setListFavorites, setUser, logoutUser, setIsAuthenticating } from "../../redux/features/userSlice";
 import { clearWatchlist } from "../../redux/features/watchlistSlice";
 
 /**
@@ -29,10 +30,11 @@ const MainLayout = () => {
 
   /**
    * Listen for auth:logout event from private client interceptor
+   * This is triggered when token refresh fails (user must re-login)
    */
   useEffect(() => {
     const handleLogout = () => {
-      dispatch(setUser(null));
+      dispatch(logoutUser());
       dispatch(setListFavorites([]));
       dispatch(clearWatchlist());
     };
@@ -44,24 +46,39 @@ const MainLayout = () => {
   /**
    * Fetches authenticated user information on mount.
    * Only attempts if there's a token in localStorage (indicates previous login).
+   * The token interceptor handles refreshing expired tokens automatically.
    */
   useEffect(() => {
     const authUser = async () => {
       // Check if there's a token - if not, user is logged out
       const token = localStorage.getItem("actkn");
       if (!token) {
+        // No token, mark as not authenticated
         dispatch(setUser(null));
         dispatch(clearWatchlist());
         return;
       }
 
+      // Token exists, try to get user info
+      // The interceptor will handle token refresh if needed
       const { response, err } = await userApi.getInfo();
 
       if (response) {
         dispatch(setUser(response));
       } else if (err) {
-        dispatch(setUser(null));
-        dispatch(clearWatchlist());
+        // Only log out if the token was explicitly invalidated
+        // Check if the token was removed by the interceptor (auth:logout would have been dispatched)
+        const tokenAfterRequest = localStorage.getItem("actkn");
+        if (!tokenAfterRequest) {
+          // Token was cleared by interceptor, user is logged out
+          dispatch(setUser(null));
+          dispatch(clearWatchlist());
+        } else {
+          // Token still exists but request failed (maybe network error)
+          // Don't log out, just mark auth as complete with no user
+          // The user can try again
+          dispatch(setIsAuthenticating(false));
+        }
       }
     };
 
@@ -111,6 +128,9 @@ const MainLayout = () => {
 
       {/* Back to top button */}
       <BackToTop threshold={400} />
+
+      {/* AI Chatbot Assistant */}
+      <AIChatBot />
 
       {/* Cookie consent banner */}
       <CookieConsent />

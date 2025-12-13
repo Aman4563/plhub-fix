@@ -98,11 +98,11 @@ contactSchema.pre("save", async function (next) {
 });
 
 // Indexes
+// Note: ticketNumber already has index via `unique: true`
 contactSchema.index({ email: 1 });
 contactSchema.index({ status: 1 });
 contactSchema.index({ category: 1 });
 contactSchema.index({ createdAt: -1 });
-contactSchema.index({ ticketNumber: 1 });
 
 const contactModel = mongoose.model("Contact", contactSchema);
 

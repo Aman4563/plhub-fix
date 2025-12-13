@@ -6,6 +6,7 @@
 import crypto from "crypto";
 import https from "https";
 import logger from "../config/logger.config.js";
+import { sanitizeDisplayName as sharedSanitizeDisplayName } from "./sanitization.js";
 
 /**
  * Check if password has been exposed in data breaches using HaveIBeenPwned API
@@ -77,28 +78,11 @@ export const checkPasswordBreach = async (password) => {
 
 /**
  * Sanitize displayName to prevent XSS
- * Removes HTML tags and encodes special characters
+ * Re-exports shared sanitization utility for backwards compatibility
  * @param {string} displayName - Display name to sanitize
  * @returns {string} - Sanitized display name
  */
-export const sanitizeDisplayName = (displayName) => {
-  if (!displayName) return "";
-  
-  return displayName
-    // Remove HTML tags
-    .replace(/<[^>]*>/g, "")
-    // Encode HTML entities
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    // Remove potential script injections
-    .replace(/javascript:/gi, "")
-    .replace(/on\w+=/gi, "")
-    // Trim whitespace
-    .trim();
-};
+export const sanitizeDisplayName = sharedSanitizeDisplayName;
 
 export default {
   checkPasswordBreach,

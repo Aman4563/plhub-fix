@@ -46,7 +46,7 @@ import userApi from "../api/modules/user.api";
 import { toast } from "react-toastify";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setUser, setListFavorites } from "../redux/features/userSlice";
+import { logoutUser, setListFavorites } from "../redux/features/userSlice";
 import { setAuthModalOpen } from "../redux/features/authModalSlice";
 import { clearWatchlist } from "../redux/features/watchlistSlice";
 
@@ -362,7 +362,7 @@ const PasswordUpdate = () => {
       
       // Clear all user data
       form.resetForm();
-      dispatch(setUser(null));
+      dispatch(logoutUser());
       dispatch(setListFavorites([]));
       dispatch(clearWatchlist());
     }

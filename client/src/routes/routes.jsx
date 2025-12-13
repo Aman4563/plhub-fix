@@ -17,6 +17,7 @@ import AdminProtectedPage from "../components/common/AdminProtectedPage";
 import FeedbackSpreadsheet from "../pages/FeedbackSpreadsheet";
 import AdminPanel from "../pages/admin/AdminPanel";
 import VerifyEmail from "../pages/VerifyEmail";
+import ResetPassword from "../pages/ResetPassword";
 
 import {
   PrivacyPolicyPage,
@@ -115,6 +116,12 @@ const routes = [
     path: "/verify-email/:token",
     element: <VerifyEmail />,
     state: "verify-email",
+  },
+  // Password Reset
+  {
+    path: "/reset-password/:token",
+    element: <ResetPassword />,
+    state: "reset-password",
   },
   // Admin Panel (Protected - Moderator+ only)
   {

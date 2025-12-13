@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import menuConfigs from "../../configs/menu.configs";
-import { setUser, setListFavorites } from "../../redux/features/userSlice";
+import { logoutUser, setListFavorites } from "../../redux/features/userSlice";
 import { clearWatchlist } from "../../redux/features/watchlistSlice";
 import { routesGen } from "../../routes/routes";
 import userApi from "../../api/modules/user.api";
@@ -33,9 +33,6 @@ const UserMenu = () => {
    * Signs the user out by calling logout API, clearing tokens, and resetting Redux state.
    */
   const handleSignOut = async () => {
-    // Clear localStorage token first to prevent auto-refresh
-    localStorage.removeItem("actkn");
-    
     try {
       // Call logout API to clear server-side session and cookies
       await userApi.logout();
@@ -45,8 +42,8 @@ const UserMenu = () => {
       toast.success("Logged out");
     }
     
-    // Clear Redux state (do this after API call)
-    dispatch(setUser(null));
+    // Clear Redux state and localStorage tokens
+    dispatch(logoutUser());
     dispatch(setListFavorites([]));
     dispatch(clearWatchlist());
     

@@ -4,18 +4,21 @@ import { createSlice } from "@reduxjs/toolkit";
  * Redux slice for managing user-related state.
  * - Includes user information and a list of favorite items.
  * - Provides actions to update the user state and manage favorites.
+ * - Tracks authentication state for proper loading handling.
  */
 export const userSlice = createSlice({
   name: "User", // Name of the slice
   initialState: {
     user: null, // Holds the currently logged-in user details
     listFavorites: [], // Stores the list of user's favorite items
+    isAuthenticating: true, // True while checking auth on app load
   },
   reducers: {
     /**
      * Sets the user data in the state.
-     * - If payload is null, clears user-related tokens from localStorage.
+     * - If payload is null, user is logged out (tokens cleared separately).
      * - Otherwise, stores provided tokens in localStorage (if available).
+     * - Always marks authentication as complete.
      * 
      * @param {Object} state - Current state.
      * @param {Object} action - Redux action containing user data.
@@ -23,12 +26,7 @@ export const userSlice = createSlice({
     setUser: (state, action) => {
       const userData = action.payload;
 
-      if (userData === null) {
-        // Clear user-related tokens when logging out
-        localStorage.removeItem("actkn");
-        localStorage.removeItem("captchaToken");
-        localStorage.removeItem("googleToken");
-      } else {
+      if (userData !== null) {
         // Store tokens if available in the user payload
         if (userData.token) localStorage.setItem("actkn", userData.token);
         if (userData.captchaToken) localStorage.setItem("captchaToken", userData.captchaToken);
@@ -37,6 +35,29 @@ export const userSlice = createSlice({
 
       // Update state with the new user data
       state.user = userData;
+      // Mark authentication check as complete
+      state.isAuthenticating = false;
+    },
+
+    /**
+     * Explicitly logs out the user and clears all tokens.
+     * Use this instead of setUser(null) for intentional logout.
+     */
+    logoutUser: (state) => {
+      // Clear user-related tokens when logging out
+      localStorage.removeItem("actkn");
+      localStorage.removeItem("captchaToken");
+      localStorage.removeItem("googleToken");
+      state.user = null;
+      state.isAuthenticating = false;
+    },
+
+    /**
+     * Sets the authenticating state.
+     * Used to show loading while auth check is in progress.
+     */
+    setIsAuthenticating: (state, action) => {
+      state.isAuthenticating = action.payload;
     },
 
     /**
@@ -111,7 +132,9 @@ export const userSlice = createSlice({
 
 // Export actions for dispatching
 export const { 
-  setUser, 
+  setUser,
+  logoutUser,
+  setIsAuthenticating,
   setListFavorites, 
   addFavorite, 
   removeFavorite,

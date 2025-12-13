@@ -85,7 +85,7 @@ const MediaSlide = ({
           style={{ 
             paddingInline: "0.5rem",
             paddingTop: withPreview ? "0.5rem" : "0",
-            paddingBottom: withPreview ? "8rem" : "0",
+            paddingBottom: withPreview ? "2rem" : "0",
           }}
         >
           <ItemComponent 

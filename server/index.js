@@ -40,7 +40,7 @@ app.use(helmet({
   crossOriginResourcePolicy: securityConfig.helmet.crossOriginResourcePolicy,
 }));
 
-// CORS Configuration - FIXED: Added https:// prefix for production URL
+// CORS Configuration - Uses environment variable for frontend URL
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, etc.)
@@ -48,16 +48,17 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Build allowed origins from environment variable and localhost defaults
     const allowedOrigins = [
-      "https://plhub-frontend-git-advancefeatur-85221b-amans-projects-62ecaac6.vercel.app",
+      process.env.FRONTEND_URL,
       "http://localhost:3000",
       "http://localhost:3001",
-    ];
+    ].filter(Boolean); // Remove undefined/null values
 
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      logger.warn("CORS blocked request from origin", { origin });
+      logger.warn("CORS blocked request from origin", { origin, allowedOrigins });
       callback(new Error("Not allowed by CORS"));
     }
   },
@@ -186,10 +187,9 @@ const bootstrapFirstAdmin = async () => {
 // MongoDB Connection with retry logic
 const connectDB = async (retries = 5) => {
   try {
-    await mongoose.connect(process.env.MONGODB_URL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    // Note: useNewUrlParser and useUnifiedTopology are deprecated since MongoDB Driver 4.0
+    // They have no effect and will be removed in future versions
+    await mongoose.connect(process.env.MONGODB_URL);
     
     logger.info("MongoDB connected successfully");
     

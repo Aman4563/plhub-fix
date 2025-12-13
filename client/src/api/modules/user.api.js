@@ -52,7 +52,6 @@ const userApi = {
    * @param {string} params.username - Username for the new user.
    * @param {string} params.email - Email of the new user.
    * @param {string} params.password - Password for the new user.
-   * @param {string} params.confirmPassword - Confirm password field.
    * @param {string} params.displayName - Display name of the new user.
    * @param {string} params.captchaToken - Captcha token for verification.
    * @param {boolean} params.acceptedTerms - Whether user accepted terms.
@@ -62,7 +61,6 @@ const userApi = {
     username,
     email,
     password,
-    confirmPassword,
     displayName,
     captchaToken,
     acceptedTerms,
@@ -72,7 +70,6 @@ const userApi = {
         username,
         email,
         password,
-        confirmPassword,
         displayName,
         captchaToken,
         acceptedTerms,

@@ -132,23 +132,14 @@ const AutoSwiper = ({
       onFocus={() => setIsFocused(true)}
       onBlur={() => setIsFocused(false)}
       sx={{
-        overflowX: "clip",
-        overflowY: allowOverflow ? "visible" : "hidden",
         position: "relative",
-        marginBottom: allowOverflow ? "-6rem" : 0,
-        px: { xs: "20px", md: 0 },
+        marginBottom: allowOverflow ? "-2rem" : 0,
         outline: "none",
         "&:focus-visible": {
           outline: "2px solid",
           outlineColor: "primary.main",
           outlineOffset: 2,
           borderRadius: 1,
-        },
-        "& .swiper": {
-          overflow: allowOverflow ? "visible" : "hidden",
-        },
-        "& .swiper-wrapper": {
-          overflow: allowOverflow ? "visible" : "hidden",
         },
         "& .swiper-slide": {
           width: {
@@ -191,7 +182,7 @@ const AutoSwiper = ({
             <span
               style={{
                 position: "absolute",
-                left: 0,
+                left: "0",
                 top: "40%",
                 transform: "translateY(-50%)",
                 zIndex: 15,
@@ -203,21 +194,20 @@ const AutoSwiper = ({
                 disabled={!canGoPrev}
                 aria-label="Go to previous items"
                 sx={{
-                  marginLeft: { xs: 0, md: "-20px" },
-                backgroundColor: "background.paper",
-                boxShadow: 3,
-                opacity: canGoPrev ? 0.9 : 0.3,
-                transition: "all 0.2s ease",
-                "&:hover": { 
-                  opacity: 1, 
-                  backgroundColor: "primary.main",
-                  color: "primary.contrastText",
-                },
-                display: { xs: "none", md: "flex" },
-              }}
-            >
-              <KeyboardArrowLeftIcon />
-            </IconButton>
+                  backgroundColor: "background.paper",
+                  boxShadow: 3,
+                  opacity: canGoPrev ? 0.9 : 0.3,
+                  transition: "all 0.2s ease",
+                  "&:hover": { 
+                    opacity: 1, 
+                    backgroundColor: "primary.main",
+                    color: "primary.contrastText",
+                  },
+                  display: { xs: "none", md: "flex" },
+                }}
+              >
+                <KeyboardArrowLeftIcon />
+              </IconButton>
             </span>
           </Tooltip>
 
@@ -225,7 +215,7 @@ const AutoSwiper = ({
             <span
               style={{
                 position: "absolute",
-                right: 0,
+                right: "0",
                 top: "40%",
                 transform: "translateY(-50%)",
                 zIndex: 15,
@@ -237,21 +227,20 @@ const AutoSwiper = ({
                 disabled={!canGoNext}
                 aria-label="Go to next items"
                 sx={{
-                  marginRight: { xs: 0, md: "-20px" },
-                backgroundColor: "background.paper",
-                boxShadow: 3,
-                opacity: canGoNext ? 0.9 : 0.3,
-                transition: "all 0.2s ease",
-                "&:hover": { 
-                  opacity: 1, 
-                  backgroundColor: "primary.main",
-                  color: "primary.contrastText",
-                },
-                display: { xs: "none", md: "flex" },
-              }}
-            >
-              <KeyboardArrowRightIcon />
-            </IconButton>
+                  backgroundColor: "background.paper",
+                  boxShadow: 3,
+                  opacity: canGoNext ? 0.9 : 0.3,
+                  transition: "all 0.2s ease",
+                  "&:hover": { 
+                    opacity: 1, 
+                    backgroundColor: "primary.main",
+                    color: "primary.contrastText",
+                  },
+                  display: { xs: "none", md: "flex" },
+                }}
+              >
+                <KeyboardArrowRightIcon />
+              </IconButton>
             </span>
           </Tooltip>
         </>
@@ -260,6 +249,7 @@ const AutoSwiper = ({
       <Swiper
         slidesPerView="auto"
         grabCursor={true}
+        spaceBetween={0}
         keyboard={{
           enabled: true,
           onlyInViewport: true,
@@ -284,6 +274,7 @@ const AutoSwiper = ({
           width: "100%",
           height: "max-content",
           overflow: allowOverflow ? "visible" : "hidden",
+          paddingBottom: allowOverflow ? "2rem" : "0",
         }}
       >
         {children}

@@ -5,7 +5,7 @@
 
 import newsletterModel from "../models/newsletter.model.js";
 import responseHandler from "../handlers/response.handler.js";
-import logger from "../utils/logger.js";
+import logger from "../config/logger.config.js";
 import emailService from "../utils/email.service.js";
 
 /**
