@@ -8,8 +8,8 @@ import * as Yup from "yup";
 import userApi from "../../api/modules/user.api";
 import { setAuthModalOpen } from "../../redux/features/authModalSlice";
 import { setUser } from "../../redux/features/userSlice";
-import ReCAPTCHA from "react-google-recaptcha";
-import useGoogleOAuth from "../../hooks/useGoogleOAuth";
+// import ReCAPTCHA from "react-google-recaptcha";
+// import useGoogleOAuth from "../../hooks/useGoogleOAuth";
 
 /**
  * SigninForm Component
@@ -57,11 +57,11 @@ const SigninForm = ({ switchAuthState }) => {
   };
 
   // Initialize Google OAuth hook
-  useGoogleOAuth(
-    process.env.REACT_APP_GOOGLE_CLIENT_ID,
-    "googleSignInButton",
-    handleGoogleSignIn
-  );
+  // useGoogleOAuth(
+  //   process.env.REACT_APP_GOOGLE_CLIENT_ID,
+  //   "googleSignInButton",
+  //   handleGoogleSignIn
+  // );
 
   /**
    * Handles ReCAPTCHA token change.
@@ -89,13 +89,14 @@ const SigninForm = ({ switchAuthState }) => {
     onSubmit: async (values) => {
       setErrorMessage(null);
 
-      if (!captchaToken) {
-        setErrorMessage("Please complete the CAPTCHA.");
-        return;
-      }
+      // Bypass captcha check for development
+      // if (!captchaToken) {
+      //   setErrorMessage("Please complete the CAPTCHA.");
+      //   return;
+      // }
 
       setIsLoginRequest(true);
-      const { response, err } = await userApi.signin({ ...values, captchaToken });
+      const { response, err } = await userApi.signin({ ...values, captchaToken: "bypass-token" });
       setIsLoginRequest(false);
 
       if (response) {
@@ -138,11 +139,11 @@ const SigninForm = ({ switchAuthState }) => {
           helperText={signinForm.touched.password && signinForm.errors.password}
         />
 
-        {/* ReCAPTCHA */}
-        <ReCAPTCHA
+        {/* ReCAPTCHA - Commented out for development */}
+        {/* <ReCAPTCHA
           sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
           onChange={handleCaptchaChange}
-        />
+        /> */}
       </Stack>
 
       {/* Sign In Button */}
@@ -157,8 +158,8 @@ const SigninForm = ({ switchAuthState }) => {
         Sign in
       </LoadingButton>
 
-      {/* Google Sign-In Button */}
-      <Box id="googleSignInButton" sx={{ marginTop: 2, textAlign: "center" }} />
+      {/* Google Sign-In Button - Commented out for development */}
+      {/* <Box id="googleSignInButton" sx={{ marginTop: 2, textAlign: "center" }} /> */}
 
       {/* Switch to Sign Up */}
       <Button fullWidth sx={{ marginTop: 1 }} onClick={switchAuthState}>

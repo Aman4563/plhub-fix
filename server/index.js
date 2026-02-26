@@ -13,7 +13,7 @@ const app = express();
 // Middleware setup
 // Middleware for CORS
 app.use(cors({
-  origin: ['https://plhub-frontend-git-advancefeatur-85221b-amans-projects-62ecaac6.vercel.app/', 'http://localhost:3000/'],   // Allow only your frontend
+  origin: ['https://plhub-frontend-git-advancefeatur-85221b-amans-projects-62ecaac6.vercel.app', 'http://localhost:3000'],   // Allow only your frontend
   methods: 'GET,POST,PUT,DELETE',
   credentials: true,   // Allow cookies if needed
 }));

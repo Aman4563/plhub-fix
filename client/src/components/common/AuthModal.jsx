@@ -30,42 +30,6 @@ const AuthModal = () => {
       setAction(actionState.signin);
       dispatch(clearAuthError());
     }
-
-    if (!document.getElementById("google-oauth-script")) {
-      const script = document.createElement("script");
-      script.src = "https://accounts.google.com/gsi/client";
-      script.id = "google-oauth-script";
-      script.async = true;
-      script.defer = true;
-      script.onload = renderGoogleButton;
-      document.body.appendChild(script);
-    } else {
-      renderGoogleButton();
-    }
-
-    function renderGoogleButton() {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-          callback: handleGoogleSignIn,
-        });
-
-        window.google.accounts.id.renderButton(
-          document.getElementById("googleSignInButton"),
-          {
-            theme: "outline",
-            size: "large",
-            width: "100%",
-          }
-        );
-      }
-    }
-
-    return () => {
-      if (!authModalOpen && document.getElementById("googleSignInButton")) {
-        document.getElementById("googleSignInButton").innerHTML = "";
-      }
-    };
   }, [authModalOpen, dispatch]);
 
   /**
@@ -126,11 +90,16 @@ const AuthModal = () => {
             <Logo />
           </Box>
 
+          {/* Test Content */}
+          <Box sx={{ textAlign: "center" }}>
+            <h2>Auth Modal Test</h2>
+            <p>Modal is working!</p>
+          </Box>
+
           {/* Signin Form */}
           {action === actionState.signin && (
             <>
               <SigninForm switchAuthState={() => switchAuthState(actionState.signup)} />
-              <Box id="googleSignInButton" sx={{ textAlign: "center", marginTop: "1rem" }}></Box>
             </>
           )}
 
@@ -138,7 +107,6 @@ const AuthModal = () => {
           {action === actionState.signup && (
             <>
               <SignupForm switchAuthState={() => switchAuthState(actionState.signin)} />
-              <Box id="googleSignInButton" sx={{ textAlign: "center", marginTop: "1rem" }}></Box>
             </>
           )}
         </Box>
