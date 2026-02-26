@@ -31,13 +31,13 @@ Start MongoDB first, then the server, then the client.
 
 ### Important Gotchas
 
-- **CORS trailing slashes**: The CORS origin list in `server/index.js` must NOT have trailing slashes (e.g. `http://localhost:3000` not `http://localhost:3000/`). This was a bug that has been fixed.
-- **Client API base URLs**: `client/src/api/client/private.client.js` and `public.client.js` contain the API base URL. For local dev, these must point to `http://localhost:5000/api/v1/`. The repo currently has them set to the local dev URL.
+- **CORS**: The merged `server/index.js` uses a function-based CORS handler that allows `http://localhost:3000`, `http://localhost:3001`, and the `FRONTEND_URL` env var. No trailing slashes needed.
+- **Client API base URLs**: `private.client.js` and `public.client.js` use `process.env.REACT_APP_API_URL || "http://localhost:5000/api/v1/"` — works out of the box for local dev.
 - **ReCAPTCHA / Google OAuth**: The auth forms have full ReCAPTCHA and Google OAuth integration active. For local development, set `BYPASS_CAPTCHA=true` and `NODE_ENV=development` when starting the server so the `verifyCaptcha` function bypasses Google verification. The client `.env` should have `REACT_APP_RECAPTCHA_SITE_KEY` set (Google's test key `6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI` works for local dev).
 - **No automated tests**: The codebase has no test files. `yarn test` in `client/` will exit with code 1 (`--passWithNoTests` flag needed to avoid failure).
 - **Lockfiles**: Both `client/` and `server/` have both `yarn.lock` and `package-lock.json`. Use `yarn` as the package manager (matches the lockfile and README instructions).
 - **TMDB_BASE_URL trailing slash**: `tmdb.config.js` builds URLs as `${baseUrl}${endpoint}?...` with no separator, so `TMDB_BASE_URL` **must** end with `/`.
-- **Injected secrets key=value format**: Secrets injected by the Cloud environment may include the key name as part of the value (e.g. `TMDB_KEY=TMDB_KEY=abc123`). When starting the server, override with explicit correct values via command-line prefix: `MONGODB_URL=mongodb://localhost:27017/plhub TMDB_BASE_URL="https://api.themoviedb.org/3/" TMDB_KEY=<actual_key> TOKEN_SECRET=<secret> PORT=5000 NODE_ENV=development BYPASS_CAPTCHA=true npx nodemon index.js`
+- **Injected secrets key=value format**: Secrets injected by the Cloud environment may include the key name as part of the value (e.g. `TMDB_KEY=TMDB_KEY=abc123`). When starting the server, override with explicit correct values via command-line prefix: `MONGODB_URL=mongodb://localhost:27017/plhub TMDB_BASE_URL=<base_url_with_trailing_slash> TMDB_KEY=<actual_key> TOKEN_SECRET=<secret> PORT=5000 NODE_ENV=development npx nodemon index.js`
 - **dotenv does not override**: `server/index.js` uses `import "dotenv/config"` which does NOT override existing env vars. If secrets are injected as env vars, the `.env` file values are ignored — you must override via command-line prefix.
 
 ### Lint / Test / Build
