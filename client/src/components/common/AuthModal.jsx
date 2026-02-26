@@ -90,12 +90,6 @@ const AuthModal = () => {
             <Logo />
           </Box>
 
-          {/* Test Content */}
-          <Box sx={{ textAlign: "center" }}>
-            <h2>Auth Modal Test</h2>
-            <p>Modal is working!</p>
-          </Box>
-
           {/* Signin Form */}
           {action === actionState.signin && (
             <>
