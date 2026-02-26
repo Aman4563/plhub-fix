@@ -21,7 +21,7 @@ Start MongoDB first, then the server, then the client.
 **`server/.env`** — required variables:
 - `MONGODB_URL=mongodb://localhost:27017/plhub`
 - `TOKEN_SECRET=<any random string>`
-- `TMDB_BASE_URL=https://api.themoviedb.org/3`
+- `TMDB_BASE_URL` — the TMDB v3 API base URL with a trailing slash (trailing slash required — `tmdb.config.js` concatenates `${baseUrl}${endpoint}` without a separator)
 - `TMDB_KEY=<your TMDB API key>` — get a free key at https://www.themoviedb.org/settings/api
 - `PORT=5000`
 
@@ -36,6 +36,9 @@ Start MongoDB first, then the server, then the client.
 - **ReCAPTCHA / Google OAuth**: These are commented out in the auth forms for local development since they require valid API keys. Sign-up and sign-in work without them because the server's `verifyCaptcha` function returns the HTTP status (200), which is always truthy.
 - **No automated tests**: The codebase has no test files. `yarn test` in `client/` will exit with code 1 (`--passWithNoTests` flag needed to avoid failure).
 - **Lockfiles**: Both `client/` and `server/` have both `yarn.lock` and `package-lock.json`. Use `yarn` as the package manager (matches the lockfile and README instructions).
+- **TMDB_BASE_URL trailing slash**: `tmdb.config.js` builds URLs as `${baseUrl}${endpoint}?...` with no separator, so `TMDB_BASE_URL` **must** end with `/`.
+- **Injected secrets key=value format**: Secrets injected by the Cloud environment may include the key name as part of the value (e.g. `TMDB_KEY=TMDB_KEY=abc123`). When starting the server, override with explicit correct values via command-line prefix: `MONGODB_URL=mongodb://localhost:27017/plhub TMDB_BASE_URL=<base_url_with_trailing_slash> TMDB_KEY=<actual_key> TOKEN_SECRET=<secret> PORT=5000 npx nodemon index.js`
+- **dotenv does not override**: `server/index.js` uses `import "dotenv/config"` which does NOT override existing env vars. If secrets are injected as env vars, the `.env` file values are ignored — you must override via command-line prefix.
 
 ### Lint / Test / Build
 
