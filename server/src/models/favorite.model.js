@@ -5,23 +5,16 @@ const { Schema } = mongoose;
 
 /**
  * Favorite Schema
- * Represents a user's favorite media item.
+ * Represents a user's favorite media item
  */
 const favoriteSchema = new Schema(
   {
-    /**
-     * User who marked the item as favorite.
-     * References the User model.
-     */
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: [true, "User ID is required."],
+      index: true,
     },
-    /**
-     * Type of media being marked as favorite.
-     * Values must be either "tv" or "movie".
-     */
     mediaType: {
       type: String,
       enum: {
@@ -30,41 +23,21 @@ const favoriteSchema = new Schema(
       },
       required: [true, "Media type is required."],
     },
-    /**
-     * Unique ID of the media item.
-     */
     mediaId: {
       type: String,
       required: [true, "Media ID is required."],
-      trim: true, // Remove leading/trailing spaces
+      trim: true,
     },
-    /**
-     * Title of the media item.
-     */
     mediaTitle: {
       type: String,
       required: [true, "Media title is required."],
       trim: true,
       maxlength: [200, "Media title cannot exceed 200 characters."],
     },
-    /**
-     * URL for the media poster.
-     */
     mediaPoster: {
       type: String,
       required: [true, "Media poster URL is required."],
-      validate: {
-        validator: function (v) {
-          // Validate that mediaPoster contains a properly formatted URL
-          return /^(https?:\/\/[^\s]+)$/i.test(v);
-        },
-        message: "Media poster must be a valid URL.",
-      },
     },
-    /**
-     * User rating of the media item.
-     * Must be between 0 and 10.
-     */
     mediaRate: {
       type: Number,
       required: [true, "Media rate is required."],
@@ -75,10 +48,15 @@ const favoriteSchema = new Schema(
   modelOptions
 );
 
-/**
- * Favorite Model
- * Represents the Favorite collection in MongoDB.
- */
+// Compound index for efficient queries - user + mediaId should be unique
+favoriteSchema.index({ user: 1, mediaId: 1 }, { unique: true });
+
+// Index for querying by mediaType
+favoriteSchema.index({ user: 1, mediaType: 1 });
+
+// Index for sorting by creation date
+favoriteSchema.index({ user: 1, createdAt: -1 });
+
 const Favorite = mongoose.model("Favorite", favoriteSchema);
 
 export default Favorite;

@@ -18,10 +18,10 @@ const feedbackApi = {
     }
   },
 
-  fetchFeedback: async () => {
+  fetchFeedback: async (page = 1, limit = 10) => {
     try {
-      const response = await publicClient.get(feedbackEndpoints.fetch);
-      return  response ;
+      const response = await publicClient.get(`${feedbackEndpoints.fetch}?page=${page}&limit=${limit}`);
+      return response;
     } catch (err) {
       return { err };
     }

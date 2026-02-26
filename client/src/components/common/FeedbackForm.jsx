@@ -224,7 +224,7 @@ const ErrorAlert = styled(Alert)`
   margin-top: 20px;
 `;
 
-const FeedbackForm = () => {
+const FeedbackForm = ({ onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [success, setSuccess] = useState(false); // State to manage success animation
@@ -236,14 +236,19 @@ const FeedbackForm = () => {
     },
     onSubmit: async (values) => {
       setIsSubmitting(true);
+      setErrorMessage('');
       try {
         const { response, err } = await feedbackApi.submitFeedback(values);
         setIsSubmitting(false);
         if (response) {
           formik.resetForm();
-          toast.success('Feedback submitted successfully!', { position: 'bottom-left' }); // Set position to bottom-left
-          setSuccess(true); // Trigger success animation
-          setTimeout(() => setSuccess(false), 500); // Reset success animation after 500ms
+          toast.success('Feedback submitted successfully!', { position: 'bottom-left' });
+          setSuccess(true);
+          setTimeout(() => setSuccess(false), 500);
+          // Call onSuccess callback to refresh the feedback list
+          if (onSuccess) {
+            onSuccess();
+          }
         }
         if (err) {
           setErrorMessage('Error submitting feedback. Please try again.');

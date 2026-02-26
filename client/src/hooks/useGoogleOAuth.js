@@ -1,68 +1,155 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
+
+// Singleton to track global script loading state
+let globalScriptLoaded = false;
+let globalScriptLoading = false;
+const scriptLoadCallbacks = [];
+
+/**
+ * Load Google OAuth script once globally
+ */
+const loadGoogleScript = () => {
+  return new Promise((resolve, reject) => {
+    if (globalScriptLoaded && window.google) {
+      resolve();
+      return;
+    }
+
+    if (globalScriptLoading) {
+      scriptLoadCallbacks.push({ resolve, reject });
+      return;
+    }
+
+    const existingScript = document.getElementById("google-oauth-script");
+    
+    if (existingScript && window.google) {
+      globalScriptLoaded = true;
+      resolve();
+      return;
+    }
+
+    globalScriptLoading = true;
+
+    const script = existingScript || document.createElement("script");
+    
+    if (!existingScript) {
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.id = "google-oauth-script";
+    }
+
+    script.onload = () => {
+      globalScriptLoaded = true;
+      globalScriptLoading = false;
+      resolve();
+      scriptLoadCallbacks.forEach(cb => cb.resolve());
+      scriptLoadCallbacks.length = 0;
+    };
+
+    script.onerror = () => {
+      globalScriptLoading = false;
+      const error = new Error("Failed to load Google OAuth script");
+      reject(error);
+      scriptLoadCallbacks.forEach(cb => cb.reject(error));
+      scriptLoadCallbacks.length = 0;
+    };
+
+    if (!existingScript) {
+      document.body.appendChild(script);
+    }
+  });
+};
 
 /**
  * Custom hook for integrating Google OAuth in a React application.
- * - Dynamically loads the Google OAuth script if not already present.
- * - Initializes and renders the Google Sign-In button with the provided configuration.
- *
- * @param {string} clientId - Google OAuth client ID.
- * @param {string} buttonId - ID of the HTML element where the button will be rendered.
- * @param {Function} callback - Callback function to handle Google sign-in response.
+ * Handles script loading centrally to avoid multiple loads.
+ * 
+ * @param {Function} callback - Callback function to handle Google OAuth response
+ * @param {Object} options - Options for the button
+ * @returns {Object} - { isLoaded, triggerPrompt }
  */
-const useGoogleOAuth = (clientId, buttonId, callback) => {
-  // Memoize the callback to avoid unnecessary reinitializations on re-renders
-  const memoizedCallback = useCallback(callback, [callback]);
+const useGoogleOAuth = (callback, options = {}) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const initializedRef = useRef(false);
+  const callbackRef = useRef(callback);
+
+  // Keep callback ref updated
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
+
+  const stableCallback = useCallback((response) => {
+    callbackRef.current?.(response);
+  }, []);
 
   useEffect(() => {
-    /**
-     * Dynamically loads the Google OAuth script if not already loaded.
-     */
-    const loadGoogleScript = () => {
-      const existingScript = document.getElementById("google-oauth-script");
+    let mounted = true;
 
-      if (!existingScript) {
-        // Create and append the Google OAuth script to the document
-        const script = document.createElement("script");
-        script.src = "https://accounts.google.com/gsi/client";
-        script.async = true;
-        script.defer = true;
-        script.id = "google-oauth-script";
-        document.body.appendChild(script);
+    const initializeGoogle = async () => {
+      try {
+        await loadGoogleScript();
 
-        // Initialize the Google button once the script is loaded
-        script.onload = () => initializeGoogleButton();
-        script.onerror = () => {
-          console.error("Failed to load Google OAuth script.");
-        };
-      } else {
-        // If script is already loaded, initialize the Google button
-        initializeGoogleButton();
+        if (!mounted || initializedRef.current) return;
+
+        // Wait a bit for Google to be fully ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        if (window.google && !initializedRef.current) {
+          window.google.accounts.id.initialize({
+            client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+            callback: stableCallback,
+            auto_select: false,
+          });
+          initializedRef.current = true;
+          setIsLoaded(true);
+        }
+      } catch (error) {
+        console.error("Google OAuth initialization error:", error);
       }
     };
 
-    /**
-     * Initializes and renders the Google Sign-In button.
-     */
-    const initializeGoogleButton = () => {
-      if (window.google && document.getElementById(buttonId)) {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: memoizedCallback,
-        });
-        window.google.accounts.id.renderButton(
-          document.getElementById(buttonId),
-          { theme: "outline", size: "large", width: "100%" }
-        );
-      } else {
-        console.warn(
-          "Google API not ready or element with provided button ID not found."
-        );
-      }
+    initializeGoogle();
+
+    return () => {
+      mounted = false;
+    };
+  }, [stableCallback]);
+
+  // Function to trigger the Google sign-in prompt
+  const triggerPrompt = useCallback(() => {
+    if (window.google && initializedRef.current) {
+      window.google.accounts.id.prompt();
+    }
+  }, []);
+
+  // Function to render button in a specific container
+  const renderButton = useCallback((containerId, buttonOptions = {}) => {
+    if (!window.google || !initializedRef.current) return;
+
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const defaultOptions = {
+      type: "standard",
+      theme: "filled_black",
+      size: "large",
+      text: options.text || "continue_with",
+      shape: "rectangular",
+      logo_alignment: "left",
+      width: 400,
+      ...buttonOptions,
     };
 
-    // Load the Google OAuth script
-    loadGoogleScript();
-  }, [clientId, buttonId, memoizedCallback]);
+    try {
+      container.innerHTML = "";
+      window.google.accounts.id.renderButton(container, defaultOptions);
+    } catch (error) {
+      console.error("Error rendering Google button:", error);
+    }
+  }, [options.text]);
+
+  return { isLoaded, triggerPrompt, renderButton };
 };
 
 export default useGoogleOAuth;

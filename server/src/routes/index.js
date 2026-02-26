@@ -1,72 +1,104 @@
-// Import necessary modules and route handlers
-import express from "express";
-import userRoute from "./user.route.js"; // Handles user-related endpoints
-import mediaRoute from "./media.route.js"; // Handles media-specific endpoints
-import personRoute from "./person.route.js"; // Handles endpoints related to people
-import reviewRoute from "./review.route.js"; // Handles reviews
-import feedbackRoute from "./feedback.route.js"; // Handles user feedback
-import genreController from "../controllers/genre.controller.js"; // Controller for genre-related operations
-import certificationController from "../controllers/certification.controller.js"; // Controller for certifications
-import filterController from "../controllers/filter.controller.js"; // Controller for media filtering
-
-// Initialize Express router
-const router = express.Router();
-
 /**
- * Define route mappings:
- * - `/user` handles user-related actions.
- * - `/person` provides data about individuals (e.g., actors, directors).
- * - `/reviews` enables interaction with user reviews.
- * - `/feedback` allows users to submit feedback about the system.
- * - `/genres/:mediaType` fetches genres for a given media type.
- * - `/certifications/movie` fetches movie certifications.
- * - `/filter/:mediaType` filters media based on query parameters.
- * - `/:mediaType` delegates to the media-specific route handler.
+ * Main Router
+ * Consolidates all application routes
  */
 
-// User routes
+import express from "express";
+import userRoute from "./user.route.js";
+import mediaRoute from "./media.route.js";
+import personRoute from "./person.route.js";
+import reviewRoute from "./review.route.js";
+import reportRoute from "./report.route.js";
+import feedbackRoute from "./feedback.route.js";
+import watchlistRoute from "./watchlist.route.js";
+import collectionRoute from "./collection.route.js";
+import newsletterRoute from "./newsletter.route.js";
+import contactRoute from "./contact.route.js";
+import jobApplicationRoute from "./job.application.route.js";
+import adminRoute from "./admin.route.js";
+import chatbotRoute from "./chatbot.route.js";
+import genreController from "../controllers/genre.controller.js";
+import certificationController from "../controllers/certification.controller.js";
+import filterController from "../controllers/filter.controller.js";
+import watchProviderController from "../controllers/watchProvider.controller.js";
+import { apiLimiter } from "../middlewares/rateLimiter.middleware.js";
+import { cacheMiddleware } from "../middlewares/cache.middleware.js";
+
+const router = express.Router();
+
+// Apply API rate limiting to all routes (with skip for cacheable routes)
+router.use(apiLimiter);
+
+/**
+ * Route mappings:
+ * - /user - User authentication and management
+ * - /admin - Admin & moderator management (protected)
+ * - /person - Actor/director information
+ * - /reviews - User reviews with ratings
+ * - /reports - User review reports for moderation
+ * - /feedback - User feedback submission
+ * - /watchlist - User watchlist (separate from favorites)
+ * - /collections - User custom collections
+ * - /newsletter - Newsletter subscription
+ * - /contact - Contact form submissions
+ * - /careers - Job applications
+ * - /genres/:mediaType - Genre lists
+ * - /certifications/movie - Movie ratings/certifications
+ * - /watch-providers/:mediaType - Available streaming services
+ * - /filter/:mediaType - Advanced media filtering
+ * - /:mediaType - Dynamic media routes
+ */
+
+// User routes (auth, favorites)
 router.use("/user", userRoute);
 
-// Person-related routes
+// Admin routes (user management, moderation)
+router.use("/admin", adminRoute);
+
+// Person routes
 router.use("/person", personRoute);
 
-// Review routes
+// Review routes (with ratings)
 router.use("/reviews", reviewRoute);
+
+// Report routes (review reports)
+router.use("/reports", reportRoute);
 
 // Feedback routes
 router.use("/feedback", feedbackRoute);
 
-// Genre routes
-router.get("/genres/:mediaType", genreController.getGenres);
+// Watchlist routes (Netflix-style "My List")
+router.use("/watchlist", watchlistRoute);
 
-// Certification routes
-router.get("/certifications/movie", certificationController.getMovieCertifications);
+// Collection routes (custom lists)
+router.use("/collections", collectionRoute);
 
-// Filter routes
+// Newsletter routes
+router.use("/newsletter", newsletterRoute);
+
+// Contact routes
+router.use("/contact", contactRoute);
+
+// Careers/Job Application routes
+router.use("/careers", jobApplicationRoute);
+
+// AI Chatbot routes
+router.use("/chatbot", chatbotRoute);
+
+// Genre routes (cached for 24 hours - rarely changes)
+router.get("/genres/:mediaType", cacheMiddleware("genres"), genreController.getGenres);
+
+// Certification routes (cached for 24 hours - rarely changes)
+router.get("/certifications/movie", cacheMiddleware("certifications"), certificationController.getMovieCertifications);
+router.get("/certifications/tv", cacheMiddleware("certifications"), certificationController.getTvCertifications);
+
+// Watch provider routes (cached for 1 hour)
+router.get("/watch-providers/:mediaType", cacheMiddleware("watchProviders"), watchProviderController.getWatchProvidersList);
+
+// Filter routes (advanced search)
 router.get("/filter/:mediaType", filterController.filterMedia);
 
-// Media-specific routes (dynamic handling based on mediaType)
+// Media routes (dynamic - movie/tv)
 router.use("/:mediaType", mediaRoute);
 
 export default router;
-
-/**
- * Main routing module for the application.
- *
- * - Consolidates all application routes and delegates them to appropriate handlers or controllers.
- * - Supports dynamic and static routes for various functionalities (users, reviews, genres, etc.).
- *
- * Key Endpoints:
- * - `/user` -> User management.
- * - `/person` -> Person details.
- * - `/reviews` -> User reviews management.
- * - `/feedback` -> Feedback handling.
- * - `/genres/:mediaType` -> Fetches genres for specified media type.
- * - `/certifications/movie` -> Fetches movie-specific certifications.
- * - `/filter/:mediaType` -> Filters media based on parameters.
- * - `/:mediaType` -> Handles media-specific operations dynamically.
- *
- * Features:
- * - Easy extensibility for new routes or functionalities.
- * - Organized and modular structure.
- */

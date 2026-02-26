@@ -1,10 +1,15 @@
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import { ListItemButton, ListItemIcon, ListItemText, Menu, Typography } from "@mui/material";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import { ListItemButton, ListItemIcon, ListItemText, Menu, Typography, Divider, Chip, Stack } from "@mui/material";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import menuConfigs from "../../configs/menu.configs";
-import { setUser } from "../../redux/features/userSlice";
+import { logoutUser, setListFavorites } from "../../redux/features/userSlice";
+import { clearWatchlist } from "../../redux/features/watchlistSlice";
+import { routesGen } from "../../routes/routes";
+import userApi from "../../api/modules/user.api";
 
 /**
  * UserMenu Component
@@ -25,11 +30,25 @@ const UserMenu = () => {
   const toggleMenu = (e) => setAnchorEl(e.currentTarget);
 
   /**
-   * Signs the user out by clearing user data from Redux.
+   * Signs the user out by calling logout API, clearing tokens, and resetting Redux state.
    */
-  const handleSignOut = () => {
-    dispatch(setUser(null)); // Clear user data
-    setAnchorEl(null); // Close the menu
+  const handleSignOut = async () => {
+    try {
+      // Call logout API to clear server-side session and cookies
+      await userApi.logout();
+      toast.success("Logged out successfully");
+    } catch (error) {
+      // API call failed but we still want to log out locally
+      toast.success("Logged out");
+    }
+    
+    // Clear Redux state and localStorage tokens
+    dispatch(logoutUser());
+    dispatch(setListFavorites([]));
+    dispatch(clearWatchlist());
+    
+    // Close the menu
+    setAnchorEl(null);
   };
 
   return (
@@ -52,6 +71,51 @@ const UserMenu = () => {
             onClose={() => setAnchorEl(null)}
             PaperProps={{ sx: { padding: 0 } }}
           >
+            {/* Admin/Moderator Panel Link */}
+            {(user.role === "admin" || user.role === "moderator") && (
+              <>
+                <ListItemButton
+                  component={Link}
+                  to={routesGen.adminPanel}
+                  onClick={() => setAnchorEl(null)}
+                  sx={{
+                    bgcolor: user.role === "admin" ? "error.dark" : "warning.dark",
+                    "&:hover": {
+                      bgcolor: user.role === "admin" ? "error.main" : "warning.main",
+                    },
+                    borderRadius: 1,
+                    mx: 1,
+                    mb: 1,
+                  }}
+                >
+                  <ListItemIcon>
+                    <AdminPanelSettingsIcon sx={{ color: "white" }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    disableTypography
+                    primary={
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Typography textTransform="uppercase" sx={{ color: "white" }}>
+                          Admin Panel
+                        </Typography>
+                        <Chip
+                          label={user.role}
+                          size="small"
+                          sx={{
+                            height: 18,
+                            fontSize: "0.65rem",
+                            bgcolor: "rgba(255,255,255,0.2)",
+                            color: "white",
+                          }}
+                        />
+                      </Stack>
+                    }
+                  />
+                </ListItemButton>
+                <Divider sx={{ my: 1 }} />
+              </>
+            )}
+
             {/* Render user-specific menu items */}
             {menuConfigs.user.map((item, index) => (
               <ListItemButton

@@ -1,65 +1,122 @@
+/**
+ * Private API Client
+ * For authenticated requests with automatic token refresh
+ */
+
 import axios from "axios";
 import queryString from "query-string";
 
-/**
- * Base URL for the API requests
- * Update this value depending on the environment (e.g., production or development).
- */
-// const baseURL = "https://plhub-fix-api-git-advancefeature-9703ab-amans-projects-62ecaac6.vercel.app/api/v1/";
-const baseURL = "http://localhost:5000/api/v1/";
+const baseURL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/v1/";
 
-/**
- * Create an Axios instance with default configurations.
- * - `baseURL`: Defines the base URL for all requests.
- * - `paramsSerializer`: Serializes query parameters for easier URL encoding.
- */
 const privateClient = axios.create({
   baseURL,
   paramsSerializer: {
-    encode: params => queryString.stringify(params), // Serialize query parameters using `query-string`
+    encode: (params) => queryString.stringify(params),
   },
-  withCredentials: true
+  withCredentials: true, // Required for httpOnly cookies
 });
 
+// Flag to prevent multiple refresh attempts
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 /**
- * Request interceptor for handling authentication and headers.
- * - Adds JSON content type to all requests.
- * - Includes an Authorization header with a Bearer token if available in localStorage.
+ * Request interceptor
+ * Adds authorization header if token exists (for backward compatibility)
  */
 privateClient.interceptors.request.use(
-  async config => {
-    const token = localStorage.getItem("actkn"); // Retrieve token from localStorage
+  async (config) => {
+    const token = localStorage.getItem("actkn");
 
-    // Return updated config with headers
     return {
       ...config,
       headers: {
-        ...config.headers, // Retain existing headers if any
+        ...config.headers,
         Accept: "application/json",
-        "Content-Type": "application/json", // Ensure JSON content type
-        ...(token ? { Authorization: `Bearer ${token}` } : {}), // Conditionally include the Authorization header
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     };
   },
-  error => {
-    // Handle request errors if necessary
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 /**
- * Response interceptor for handling responses and errors.
- * - Returns only the data part of the response if available.
- * - Throws errors from the API response for easier error handling.
+ * Response interceptor
+ * Handles token refresh on 401 errors
  */
 privateClient.interceptors.response.use(
-  response => {
-    // Return the response data if available, otherwise return the full response
-    return response && response.data ? response.data : response;
+  (response) => {
+    return response?.data ?? response;
   },
-  error => {
-    // Extract and throw the error response for more descriptive error messages
-    throw error.response?.data || error.message;
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If 401 and not already retrying
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // Don't try to refresh if user is already logged out (no token in localStorage)
+      const hasToken = localStorage.getItem("actkn");
+      if (!hasToken) {
+        window.dispatchEvent(new CustomEvent("auth:logout"));
+        throw error.response?.data ?? error;
+      }
+
+      if (isRefreshing) {
+        // Queue the request while refreshing
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return privateClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // Try to refresh the token
+        const response = await axios.post(
+          `${baseURL}user/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+
+        const { token } = response.data;
+
+        if (token) {
+          localStorage.setItem("actkn", token);
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          processQueue(null, token);
+          return privateClient(originalRequest);
+        } else {
+          throw new Error("No token received from refresh");
+        }
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        // Clear tokens and dispatch logout event
+        localStorage.removeItem("actkn");
+        window.dispatchEvent(new CustomEvent("auth:logout"));
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    throw error.response?.data ?? error;
   }
 );
 

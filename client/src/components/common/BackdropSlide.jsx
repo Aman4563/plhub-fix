@@ -1,4 +1,5 @@
 import { Box } from "@mui/material";
+import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 import { SwiperSlide } from "swiper/react";
 import tmdbConfigs from "../../api/configs/tmdb.configs";
 import NavigationSwiper from "./NavigationSwiper";
@@ -11,20 +12,48 @@ import NavigationSwiper from "./NavigationSwiper";
  * @param {Array} props.backdrops - Array of backdrop objects containing image file paths.
  */
 const BackdropSlide = ({ backdrops }) => {
+  // Filter out items without valid file paths
+  const validBackdrops = backdrops.filter(item => item.file_path);
+
+  if (validBackdrops.length === 0) {
+    return null;
+  }
+
   return (
     <NavigationSwiper>
-      {[...backdrops].slice(0, 10).map((item, index) => (
-        <SwiperSlide key={index}>
-          <Box
-            sx={{
-              paddingTop: "60%", // Ensures the box maintains a 16:9 aspect ratio
-              backgroundPosition: "top", // Focuses on the top of the image
-              backgroundSize: "cover", // Ensures the image covers the box entirely
-              backgroundImage: `url(${tmdbConfigs.backdropPath(item.file_path)})`, // Dynamically sets the background image
-            }}
-          />
-        </SwiperSlide>
-      ))}
+      {validBackdrops.slice(0, 10).map((item, index) => {
+        const imageUrl = tmdbConfigs.backdropPath(item.file_path);
+        
+        return (
+          <SwiperSlide key={index}>
+            <Box
+              sx={{
+                paddingTop: "60%",
+                backgroundPosition: "top",
+                backgroundSize: "cover",
+                backgroundColor: "grey.900",
+                backgroundImage: imageUrl ? `url(${imageUrl})` : "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {!imageUrl && (
+                <ImageNotSupportedIcon 
+                  sx={{ 
+                    fontSize: 48, 
+                    color: "grey.600",
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)"
+                  }} 
+                />
+              )}
+            </Box>
+          </SwiperSlide>
+        );
+      })}
     </NavigationSwiper>
   );
 };
