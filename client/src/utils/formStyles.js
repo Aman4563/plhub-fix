@@ -224,7 +224,7 @@ export const validationMessages = {
   },
 };
 
-export default {
+const formStyles = {
   getInputSx,
   getPrimaryButtonSx,
   getLinkButtonSx,
@@ -238,3 +238,5 @@ export default {
   validationMessages,
   GOOGLE_BUTTON_TIMEOUT,
 };
+
+export default formStyles;
